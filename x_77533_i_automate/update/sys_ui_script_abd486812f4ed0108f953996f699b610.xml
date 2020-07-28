@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_script">
+    <sys_ui_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <description/>
+        <global>false</global>
+        <name>x_77533_i_automate.angularClientScript</name>
+        <script><![CDATA[var app = angular.module('angularapp', ['ngSanitize']);
+app.controller('AngularAppCtrl', function($scope, $sce) {
+    $scope.temp = '';
+    $scope.btn = '';
+    $scope.snippet = '';
+    $scope.username = 'wickY26';
+
+
+    $scope.unsafeString = '<h1>Hello this </h1>';
+     $scope.obj = '<h1>Hello this </h1>';
+
+
+    $scope.myDirective = '<test/>';
+
+    $scope.btn = function() {
+
+
+
+
+        var ga = new GlideAjax('getData');
+        ga.addParam('sysparm_name', 'getUserData');
+        ga.getXML(HelloWorldParse);
+
+        function HelloWorldParse(response) {
+            var answer = response.responseXML.documentElement.getAttribute("answer");
+            $scope.unsafeString = JSON.parse(answer).script;
+			//$scope.obj= JSON.parse(answer).ojbsc;
+			//alert($scope.unsafeString);
+        }
+
+    };
+
+});
+
+
+app.directive('bindUnsafeHtml', ['$compile', function($compile) {
+    return function(scope, element, attrs) {
+        scope.$watch(
+            function(scope) {
+                // watch the 'bindUnsafeHtml' expression for changes
+                return scope.$eval(attrs.bindUnsafeHtml);
+            },
+            function(value) {
+                // when the 'bindUnsafeHtml' expression changes
+                // assign it into the current DOM
+                element.html(value);
+
+                // compile the new DOM and link it to the current
+                // scope.
+                // NOTE: we only compile .childNodes so that
+                // we don't get into infinite loop compiling ourselves
+                $compile(element.contents())(scope);
+            }
+        );
+    };
+}]);]]></script>
+        <script_name>angularClientScript</script_name>
+        <sys_class_name>sys_ui_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-15 05:30:09</sys_created_on>
+        <sys_id>abd486812f4ed0108f953996f699b610</sys_id>
+        <sys_mod_count>80</sys_mod_count>
+        <sys_name>x_77533_i_automate.angularClientScript</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_update_name>sys_ui_script_abd486812f4ed0108f953996f699b610</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-20 12:45:22</sys_updated_on>
+        <ui_type>10</ui_type>
+        <use_scoped_format>false</use_scoped_format>
+    </sys_ui_script>
+</record_update>

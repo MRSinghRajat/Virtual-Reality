@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>sample</category>
+        <client_script/>
+        <controller_as>c</controller_as>
+        <css/>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list>title</field_list>
+        <has_preview>true</has_preview>
+        <id/>
+        <internal>false</internal>
+        <link/>
+        <name>VIrtual Reality</name>
+        <option_schema/>
+        <public>true</public>
+        <roles/>
+        <script/>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-14 19:04:43</sys_created_on>
+        <sys_id>39d5b3302f0ad0108f953996f699b679</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>VIrtual Reality</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_update_name>sp_widget_39d5b3302f0ad0108f953996f699b679</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-14 19:05:18</sys_updated_on>
+        <template><![CDATA[<html>
+  <head>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene background="color: #FF5733">
+      <!-- Middle circles: -->
+      <a-circle 
+        color="#F5C85D"
+        position="0 2 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+<p> Hello this is test</p>
+      <a-circle 
+        color="#F5C85D"
+        position="0 1 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="0 0 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="0 3 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="0 4 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <!-- Right circles: -->
+      <a-circle 
+        color="#F5C85D"
+        position="0.866 3.5 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="0.866 2.5 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="0.866 1.5 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="0.866 0.5 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <!-- Left circles: -->
+      <a-circle 
+        color="#F5C85D"
+        position="-0.866 3.5 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="-0.866 2.5 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="-0.866 1.5 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="-0.866 0.5 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <!-- Rightmost circles: -->
+      <a-circle 
+        color="#F5C85D"
+        position="1.732 3 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="1.732 2 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="1.732 1 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <!-- Leftmost circles: -->
+
+      <a-circle 
+        color="#F5C85D"
+        position="-1.732 3 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="-1.732 2 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+
+      <a-circle 
+        color="#F5C85D"
+        position="-1.732 1 -10" 
+        radius="1"
+        opacity="0.4"></a-circle>
+      
+    </a-scene>
+  </body> 
+</html>
+
+]]></template>
+    </sp_widget>
+</record_update>

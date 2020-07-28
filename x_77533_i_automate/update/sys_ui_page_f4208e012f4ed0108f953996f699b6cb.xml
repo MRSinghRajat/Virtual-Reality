@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script/>
+        <description>HTML for Angular App</description>
+        <direct>false</direct>
+        <endpoint>x_77533_i_automate_angular_app.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-   ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"></link>
+	<script src="x_77533_i_automate.angularClientScript.jsdbx"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-sanitize.js"></script>
+	<script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+<script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.8.6/dist/aframe-extras.min.js"></script>
+	  
+	<style>
+
+	</style>
+	<script>
+
+	</script>
+
+
+	<div ng-app="angularapp" ng-controller="AngularAppCtrl as appctrl" >
+		<button ng-click="btn()"></button>
+
+		<div bind-unsafe-html="unsafeString">
+
+
+		</div>
+
+
+	</div>
+</j:jelly>]]></html>
+        <name>angular_app</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-15 05:09:13</sys_created_on>
+        <sys_id>f4208e012f4ed0108f953996f699b6cb</sys_id>
+        <sys_mod_count>79</sys_mod_count>
+        <sys_name>angular_app</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_update_name>sys_ui_page_f4208e012f4ed0108f953996f699b6cb</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-20 20:07:21</sys_updated_on>
+    </sys_ui_page>
+</record_update>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sc_cat_item_catalog">
+    <sc_cat_item_catalog action="DELETE">
+        <sc_cat_item display_value="Form change Request">2a3baf282f921c108f953996f699b699</sc_cat_item>
+        <sc_catalog display_value="Service Catalog">e0d08b13c3330100c8b837659bba8fb4</sc_catalog>
+        <sys_class_name>sc_cat_item_catalog</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-26 09:56:21</sys_created_on>
+        <sys_id>f16b23682f921c108f953996f699b673</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Service Catalog.Form change Request</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_update_name>sc_cat_item_catalog_f16b23682f921c108f953996f699b673</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-26 09:56:21</sys_updated_on>
+    </sc_cat_item_catalog>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</application>
+        <file_path/>
+        <instance_id>4a2a4fc8dbf25b40cbf6d5b0cf96194b</instance_id>
+        <instance_name>dev61429</instance_name>
+        <name>sc_cat_item_catalog_f16b23682f921c108f953996f699b673</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sc_cat_item_catalog"><sc_cat_item_catalog action="INSERT_OR_UPDATE"><sc_cat_item display_value="Form change Request">2a3baf282f921c108f953996f699b699</sc_cat_item><sc_catalog display_value="Service Catalog">e0d08b13c3330100c8b837659bba8fb4</sc_catalog><sys_class_name>sc_cat_item_catalog</sys_class_name><sys_created_by>admin</sys_created_by><sys_created_on>2020-07-26 09:56:21</sys_created_on><sys_id>f16b23682f921c108f953996f699b673</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Service Catalog.Form change Request</sys_name><sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package><sys_policy/><sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope><sys_update_name>sc_cat_item_catalog_f16b23682f921c108f953996f699b673</sys_update_name><sys_updated_by>admin</sys_updated_by><sys_updated_on>2020-07-26 09:56:21</sys_updated_on></sc_cat_item_catalog></record_update>]]></payload>
+        <payload_hash>1869021181</payload_hash>
+        <record_name>Service Catalog.Form change Request</record_name>
+        <reverted_from/>
+        <source>b7a159fc2f42d0108f953996f699b6c2</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-26 09:56:21</sys_created_on>
+        <sys_id>716b23682f921c108f953996f699b676</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>1738a8d47790000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-26 09:56:21</sys_updated_on>
+        <type>Catalog Items Catalog</type>
+        <update_guid>b96b236845921c105e950efbf2173975</update_guid>
+        <update_guid_history>b96b236845921c105e950efbf2173975:1869021181</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete display_value="Service Catalog.Form change Request">20b0ecc92f5e1c108f953996f699b6f7</sys_audit_delete>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-27 08:27:39</sys_created_on>
+        <sys_db_object display_value="" name="sc_cat_item_catalog">sc_cat_item_catalog</sys_db_object>
+        <sys_id>13c3f24f14ce46549b8ea9b4d6d28910</sys_id>
+        <sys_metadata>f16b23682f921c108f953996f699b673</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Service Catalog.Form change Request</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_parent display_value="">2a3baf282f921c108f953996f699b699</sys_parent>
+        <sys_policy/>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_scope_delete display_value="">02c75c68ce1a4ac28cb21eb80f1479c4</sys_scope_delete>
+        <sys_update_name>sc_cat_item_catalog_f16b23682f921c108f953996f699b673</sys_update_name>
+        <sys_update_version display_value="sc_cat_item_catalog_f16b23682f921c108f953996f699b673">716b23682f921c108f953996f699b676</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-27 08:27:39</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

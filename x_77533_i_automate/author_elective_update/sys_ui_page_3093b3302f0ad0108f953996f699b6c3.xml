@@ -1,0 +1,1943 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="DELETE">
+        <category>general</category>
+        <client_script><![CDATA[var app = angular.module('myHotels', []);
+
+app.factory('hotInfo', function($http, $q) { //Query Text Host Table for Hotel JSON Data
+    return {
+        getHotels: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_cs_locations.do?JSONv2&displayvalue=all&sysparm_query=ORDERBYu_spirit_code&sysparm_view=default',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.factory('openweather', function($http, $q) {
+    return {
+        getWeather: function(zip) {
+            return $http({
+                method: 'GET',
+                url: 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22' + zip + '%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys',
+            }).then(
+                function(data) {
+                    return data;
+                },
+                function(error) {
+                    return error;
+                }
+            );
+        }
+    };
+});
+app.factory('sNowMyFollowUp', function($http, $q) { //Query CS Cases Table for Cases Assigned to User
+    return {
+        getCases: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_case_action_instance.do?JSONv2&displayvalue=all&sysparm_query=assigned_to%3Djavascript%3Ags.getUserID()%3B^active%3Dtrue^u_parent_caseSTARTSWITHCS^NQu_parent_case.active%3Dtrue^u_parent_case.assigned_to%3Djavascript%3Ags.getUserID()%3B^u_parent_caseSTARTSWITHCS&sysparm_view=u_parent_cs_case_form_view',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.factory('sNowFolioUnassigned', function($http, $q) { //Query CS Cases Table for Cases Assigned to User
+    return {
+        getCases: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_cs_cases.do?JSONv2&displayvalue=all&sysparm_query=u_source%3Da58d4cfddd0019002c6911b513717b47^state%3D0^ORassigned_toISEMPTY^location.u_cs_groupingNOT LIKEunsupported^ORDERBYopened_at&sysparm_view=u_query_view',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.factory('sNowAssignToMe', function($http, $q) { //Query CS Cases Table for Cases Assigned to User
+    return {
+        getCases: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_cs_cases.do?JSONv2&displayvalue=all&sysparm_query=active%3Dtrue^assigned_to%3Djavascript%3AgetMyAssignments()&sysparm_view=u_query_view',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.factory('sNowEmailVmail', function($http, $q) { //Query CS Cases Table for Cases Assigned to User
+    return {
+        getCases: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_cs_cases.do?JSONv2&displayvalue=all&sysparm_query=state%3D0^location.u_cs_groupingISNOTEMPTY^assigned_toISEMPTY^u_source%3Df79d4cfddd0019002c6911b513717b7a^ORu_source%3D6ead4cfddd0019002c6911b513717b7f^ORu_sourceISEMPTY^u_contact_name!%3Ded9e4fd82bd839c4d9062a2ef6da15b2^ORu_contact_nameISEMPTY^ORDERBYopened_at&sysparm_view=u_query_view',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.controller('propCtrl', ['$scope', 'hotInfo', 'openweather', 'sNowFolioUnassigned', 'sNowMyFollowUp', 'sNowAssignToMe', 'sNowEmailVmail', function($scope, hotInfo, openweather, sNowFolioUnassigned, sNowMyFollowUp, sNowAssignToMe, sNowEmailVmail, weatherService) {
+    function fetchWeather(zip) {
+        openweather.getWeather(zip).then(
+            function(data) {
+                $scope.weatherData = data.data.query.results.channel;
+                $scope.weatherDays = $scope.weatherData.item.forecast;
+                var desc = $scope.weatherData.item.description.split("\"/><br", 2);
+                $scope.weatherPic = desc[0].replace("\n<img src=\"", "");
+            },
+            function(data) {
+                return;
+            }
+        );
+    }
+
+    function compare(a, b) {
+        if (a.u_cs_grouping < b.u_cs_grouping)
+            return -1;
+        if (a.u_cs_grouping > b.u_cs_grouping)
+            return 1;
+        return 0;
+    }
+    hotInfo.getHotels().then(
+        function(data) {
+            //var recs = JSON.parse(data);
+            $scope.hotels = data.records.sort(compare);
+            $scope.currSpr = $scope.hotels[0];
+            fetchWeather($scope.currSpr.u_postal_code);
+        },
+        function(error) {
+            $scope.hotels[0] = error;
+        }
+    );
+    $scope.caseGrid = "allGrids";
+    $scope.fUpOrderByField = "dv_u_parent_case";
+    $scope.fOrderByField = "number";
+    $scope.aOrderByField = "number";
+    $scope.eMvMOrderByField = "number";
+    $scope.reversOrder = false;
+
+    $scope.sortCases = function(grid, arrCases) {
+        if ($scope.caseGrid == "allGrids") {
+            return arrCases;
+        } else {
+            var gCases = [];
+            angular.forEach(arrCases, function(value, key) {
+                if (angular.equals(value.location_u_cs_grouping, grid)) {
+                    gCases.push(value);
+                }
+            });
+            return gCases;
+        }
+    };
+    $scope.$watch('currSpr', function(newSpr) {
+        if (newSpr) {
+            fetchWeather($scope.currSpr.u_postal_code);
+        }
+    });
+    $scope.refreshCases = function() {
+        sNowMyFollowUp.getCases().then(
+            function(data) {
+                var cases = [];
+                angular.forEach(data.records, function(value, key) {
+                    var exists = false;
+                    angular.forEach(cases, function(val2, key) {
+                        if (angular.equals(value.u_parent_case, val2.u_parent_case)) {
+                            exists = true;
+                        }
+                    });
+                    if (exists == false && value.dv_u_parent_case != "") {
+                        cases.push(value);
+                    }
+                });
+
+                var str = JSON.stringify(cases).split('.').join('_');
+                $scope.fUpCases = JSON.parse(str);
+            },
+            function(error) {
+                $scope.fUpCases[0] = error;
+            }
+        );
+        sNowFolioUnassigned.getCases().then(
+            function(data) {
+                var str = JSON.stringify(data.records).split('.').join('_');
+                $scope.fCases = $scope.sortCases($scope.caseGrid, JSON.parse(str));
+            },
+            function(error) {
+                $scope.fCases[0] = error;
+            }
+        );
+        sNowAssignToMe.getCases().then(
+            function(data) {
+                var str = JSON.stringify(data.records).split('.').join('_');
+                $scope.atmCases = $scope.sortCases($scope.caseGrid, JSON.parse(str));
+            },
+            function(error) {
+                $scope.atmCases[0] = error;
+            }
+        );
+        sNowEmailVmail.getCases().then(
+            function(data) {
+                var str = JSON.stringify(data.records).split('.').join('_');
+                $scope.eMvMCases = $scope.sortCases($scope.caseGrid, JSON.parse(str));
+            },
+            function(error) {
+                $scope.eMvMCases[0] = error;
+            }
+        );
+    };
+    $scope.refreshCases();
+    $scope.chgProp = function(i) {
+        $scope.currSpr = hotels[i];
+    }; //Poluate Main table when new property is selected
+    $scope.togInfo = function() { //Open dialog window for General Contact Information link
+        var contactDialog = new GlideDialogWindow("CS_Contact_Info_Table");
+        contactDialog.setTitle("General Contact Information");
+        contactDialog.render();
+    };
+    $scope.advSearchShow = false;
+    $scope.advButtonText = "Advanced Search";
+    $scope.searchCriteria = "Grid";
+    $scope.criteria = [{
+            "val": "Grid 1",
+            "displayVal": "Grid 1"
+        },
+        {
+            "val": "Grid 2",
+            "displayVal": "Grid 2"
+        },
+        {
+            "val": "Grid 3",
+            "displayVal": "Grid 3"
+        },
+        {
+            "val": "Grid 4",
+            "displayVal": "Grid 4"
+        },
+        {
+            "val": "Grid 5",
+            "displayVal": "Grid 5"
+        },
+        {
+            "val": "Grid 6",
+            "displayVal": "Grid 6"
+        },
+        {
+            "val": "Select",
+            "displayVal": "Select"
+        },
+        {
+            "val": "Stande Alone",
+            "displayVal": "Stand Alone"
+        }
+    ];
+
+    $scope.subSearchCriteria = $scope.criteria[0];
+    $scope.chgSubCritera = function() {
+        var prop;
+        if ($scope.searchCriteria == "Grid") {
+            prop = "u_cs_grouping";
+        } else if ($scope.searchCriteria == "City") {
+            prop = "u_city";
+        } else if ($scope.searchCriteria == "State") {
+            prop = "u_state";
+        }
+        $scope.advHotels = [];
+        angular.forEach($scope.hotels, function(value, key) {
+            if (angular.equals(value[prop], $scope.subSearchCriteria.val)) {
+                $scope.advHotels.push(value);
+            }
+        });
+        $scope.currSpr = $scope.advHotels[0];
+    };
+    $scope.chgCriteria = function() {
+        var prop;
+        if ($scope.searchCriteria == "Grid") {
+            prop = "u_cs_grouping";
+        } else if ($scope.searchCriteria == "City") {
+            prop = "u_city";
+        } else if ($scope.searchCriteria == "State") {
+            prop = "u_state";
+        }
+        $scope.criteria = [];
+        var exists;
+        angular.forEach($scope.hotels, function(value, key) {
+            exists = false;
+            angular.forEach($scope.criteria, function(val2, key2) {
+                if (angular.equals(val2.val, value[prop])) {
+                    exists = true;
+                }
+            });
+            if (exists == false && value[prop] != "") {
+                if (prop == "u_city") {
+                    $scope.criteria.push({
+                        "val": value.u_city,
+                        "displayVal": value.u_city + ", " + value.u_state
+                    });
+                } else if (prop == "u_state") {
+                    $scope.criteria.push({
+                        "val": value.u_state,
+                        "displayVal": value.u_state + ", " + value.u_country
+                    });
+                } else {
+                    $scope.criteria.push({
+                        "val": value[prop],
+                        "displayVal": value[prop]
+                    });
+                }
+            }
+        });
+        $scope.criteria.sort();
+        $scope.subSearchCriteria = $scope.criteria[0];
+        $scope.chgSubCritera();
+    };
+    $scope.advSearchOptions = function() {
+        $scope.advSearchShow = !$scope.advSearchShow;
+        $scope.advButtonText = $scope.advSearchShow ? 'Show All Hotels' : 'Advanced Search';
+        if ($scope.advSearchShow == true) {
+            $scope.chgCriteria();
+            $scope.chgSubCritera();
+        }
+    };
+    $scope.togThird = function() { //Open dialog window for Third Party Contacts link
+        var thirdpDialog = new GlideDialogWindow("CS_Third_Party_Contacts");
+        thirdpDialog.setTitle("Third Party Contacts");
+        thirdpDialog.render();
+    };
+    $scope.openContact = function(sysID, disVal) { //Open dialog window when user clicks on a Contact Name in the CS Cases list
+        var dialog = new GlideDialogForm('View Contact', 'u_case_user');
+        dialog.setTitle(disVal);
+        dialog.setSysID(sysID);
+        dialog.addParm('sysparm_view', 'default');
+        dialog.addParm('sysparm_form_only', 'true');
+        dialog.render();
+
+    };
+
+    $scope.popUp = function(url) { //Open new browser window to navigate to Opera
+        var popUpObj = window.open(url, '_blank');
+        popUpObj.focus();
+    };
+    $scope.activeTab = 'myFollowUp';
+    $scope.selectTab = function(item) {
+        $scope.activeTab = item;
+    };
+    $scope.selectLocation = function(sCode) {
+        var supp = false;
+        var prop;
+        angular.forEach($scope.hotels, function(value, key) {
+            if (angular.equals(value.dv_u_spirit_code, sCode)) {
+                prop = value;
+                supp = true;
+                return;
+            }
+        });
+        if (supp == true) {
+            $scope.currSpr = prop;
+        } else {
+            alert('Property not found in supported list!');
+        }
+    };
+    $scope.assignToMe = function(sysID) {
+        gs.info(sysID);
+        var gr = new GlideRecord('u_cs_cases');
+        gr.get(sysID);
+        gr.assigned_to = "javascript:gs.getUserID()";
+        gr.update();
+        alert(gr.number + " assigned to you!");
+    };
+    $scope.viewUser = function(sysID, disVal) {
+        var dialog = new GlideDialogForm('View User', 'sys_user');
+        dialog.setTitle(disVal);
+        dialog.setSysID(sysID);
+        dialog.addParm('sysparm_view', 'sys_popup');
+        dialog.addParm('sysparm_form_only', 'true');
+        dialog.render();
+    };
+    $scope.midList = function(sCode) {
+        //Initialize the GlideDialogWindow
+        var gdw = new GlideDialogWindow('display_merchant_ids_list');
+        gdw.setTitle('Merchant IDs');
+        gdw.setPreference('table', 'u_merchant_ids_list');
+        gdw.setPreference('sysparm_view', 'default');
+
+        //Set the table to display
+        var query = 'u_spirit_code=' + sCode;
+        gdw.setPreference('sysparm_query', query);
+
+        //Open the dialog window
+        gdw.render();
+    };
+}]);]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_77533_i_automate_Test.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+<g:requires name="angular-min.1.3.16.jsdbx" />
+<link href="3ca86ab937380a006215d68543990ef6.cssdbx" rel="stylesheet" type="text/css"></link>  
+<g2:evaluate var="jvar_stamp"> 
+    var gr = new GlideRecord('sys_ui_script');  
+    gr.get("13a5ea4d37300a006215d68543990e41");
+    gr.getValue('sys_updated_on');
+</g2:evaluate>  
+<g:requires name="cs-dashboard-script.jsdbx" params="cache=$[jvar_stamp]" />
+<script>
+	function searchCases(){ document.getElementById('sysparm_query').value = '123TEXTQUERY321=' + document.getElementById('123TEXTQUERY321').value; }
+</script>
+	<style>
+		a{
+	text-decoration: underline;
+	color: #00FF00;
+}
+#weatherWidget{
+	position: absolute;
+	top: 10px;
+	left: calc(100% - 820px);
+}
+#weatherTable{
+	font-size: 10px;
+}
+#titleSpan{
+	font-size: 30px;
+	color: #007ACC;
+	float: right;
+	position: relative;
+	top: 10px;
+}
+#textSearch{
+	float: right;
+	position: relative;
+	top: -4px;
+}
+#headerStripe{
+	background: linear-gradient(#DDDEDE, #FFFFFF);     
+	width: 101%;
+	position: absolute;
+	left: -10px;
+	height: 30px;
+}
+#topTable, #advTopTable{
+	border-spacing: 10px;
+	background-color: transparent;
+}
+#advanceSelect{
+	float:right;
+	margin-right: 10px;
+}
+#staticLinks{
+	float: right;
+	border-spacing: 10px;
+	background-color: transparent;
+	position: relative;
+	top: 60px;
+}
+.lblSpan{
+	font-weight: 600;
+}
+#threshText{
+	font-style: italic;
+	font-weight: bold;
+	color: red;
+}
+#hotTable, #caseList{
+	border: 1px solid #DDDEDE;
+	border-radius: 10px;
+	box-shadow: 10px 10px 5px #888888;
+	width: 98%;
+	position: relative;
+	left: 10px;
+}
+#hotTable{
+	top: 30px;
+}
+#caseList{
+	top: 60px;
+}
+.selectedList{
+	top: 60px;
+	visibility: visible;
+	display: block;
+	width: 100%;
+	margin-bottom: 10px;
+}
+.notSelectedList{
+	visibility: hidden;
+	display: none;
+}
+.caseListHeader{
+	background-color: #A3C2C2;
+	text-align: center;
+ }
+ #tabsDiv{
+ 	border-bottom: 3px solid #A3C2C2;
+	width: 100%;
+}
+.caseTable:td{
+	border: 2px solid white;
+}
+.csNumCell, .stateCell{
+	width: 100px;
+	text-align: center;
+}
+.conNameCell, .assignGrpCell, .assignToCell, .sourceCell{
+	width: 250px;
+	text-align: center;
+}
+.dateCell, .groupingCell, .locationCell{
+	width: 100px;
+	text-align: center;
+}
+.sDescCell{
+	width: 300px;
+}
+.csOdd{
+	background-color: #F6F7F7;
+}
+.csEven{
+	background-color: #E1E3E3;
+}
+.csNumDiv{
+	position: relative;
+	left: -5px;
+}
+.addMeImg:active{
+	position: relative;
+	left: 2px;
+	top: 2px;
+}
+.csNumText{
+	position: relative;
+	left: -5px;
+}
+#casesTitle{
+	font-size: 15px;
+	font-weight: bold;
+}
+#caseGridSelect{
+	float:right;
+	margin-right: 10px;
+	position: relative;
+	top: 30px;
+	left: 175px;
+}
+#newCase{
+	float: right;
+	margin-right: 10px;
+}
+#refIcon{
+	float:right;
+	margin-right: 10px;
+	position: relative;
+	top: 40px;
+	left: 65px;
+}
+.selectedTab{
+	border: 1px solid #DDDEDE;
+	background-color: #FFFFFF;
+	border-top: 5px solid #007ACC;
+	border-radius: 5px 5px 0 0;
+	height: 35px;
+	min-width: 150px;
+	line-height: 35px;
+	text-align: center;
+	vertical-align: middle;
+	font-size: 13px;
+	font-weight: bold;
+	position: relative;
+	bottom: -3px;
+}
+.notSelectedTab{
+	border: 1px solid #DDDEDE;
+	background-color: #F6F7F7;
+	border-top: 5px solid #DDDEDE;
+	border-radius: 5px 5px 0 0;
+	height: 30px;
+	min-width: 150px;
+	line-height: 35px;
+	text-align: center;
+	vertical-align: middle;
+	font-size: 13px;
+	font-weight: bold;
+	position: relative;
+	bottom: -5px;
+}
+#EmailVmail{
+	width: 200px;
+}
+#caseListSpacer{
+	width: 100%;
+}
+#page_timing_div{
+	display: none;
+	position: absolute;
+	bottom: 0;
+	right: 0;
+}
+	</style>
+<body ng-app="myHotels">
+	<a href="/" target="_blank"><img src="038456b991810100ccb6b7b97ff51bdb.iix" /></a>
+	<span id="titleSpan">Customer Service Dashboard$[SP]$[SP]
+		<span id="textSearch">
+			<form id="searchForm" action="/u_cs_cases_list.do?" method="GET" target="_blank" onsubmit="searchCases()" >
+				<label for="123TEXTQUERY321" style="display:none;">Search</label>
+				<input type="text" id="123TEXTQUERY321" onfocus="if (this.value=='Search') this.value = ''; this.style='color:#000000';" onblur="this.style.color = '#999';" value="Search" style="color:#999" />
+				<input type="hidden" name="sysparm_query" id="sysparm_query" value="" />
+				<input type="image" class="searchGlass" src="images/search_glass.gifx" width="14" height="18" />
+			</form>
+		</span>
+	</span>  
+	<div ng-controller="propCtrl">
+		<table id="headerStripe">
+			<tr>
+				<td>  
+					<table id="topTable" ng-hide="advSearchShow">
+						<tr>
+							<td>Select a Spirit Code:</td>
+							<td><select ng-options="x.dv_u_spirit_code + ' - ' + x.u_name for x in hotels" ng-model="currSpr" ng-change="chgProp(x.index)"></select></td>
+							<td>{{ currSpr.dv_u_spirit_code + ": " + currSpr.u_hotel_type + " - " + currSpr.u_cs_grouping }}</td>
+						</tr>
+					</table>
+					<table id="advTopTable" ng-show="advSearchShow">
+						<tr>
+							<td>Select Search Criteria:</td>
+							<td>
+								<select ng-model="searchCriteria" ng-change="chgCriteria()">
+										<option>Grid</option>
+										<option>City</option>
+										<option>State</option>
+								</select>
+							</td>
+							<td>Select a {{ searchCriteria }}:</td>
+							<td>
+								<select ng-model="subSearchCriteria" ng-options="c.displayVal for c in criteria | orderBy:'val'" ng-change="chgSubCritera()"></select>
+							</td>
+							<td>Select a Spirit Code:</td>
+							<td><select ng-options="x.dv_u_spirit_code + ' - ' + x.u_name for x in advHotels" ng-model="currSpr" ng-change="chgProp(x.index)"></select></td>
+							<td>{{ currSpr.u_hotel_type + " - " + currSpr.u_cs_grouping }}</td>
+						</tr>
+					</table>
+				</td>
+				<td>
+						<input type="button" id="advanceSelect" value="{{ advButtonText }}" ng-click="advSearchOptions()" />
+				</td>
+			</tr>
+		</table>
+		<div id="staticDiv">
+			<table id="staticLinks">
+				<tr>
+					<td><a id="operaLink" ng-click="popUp(currSpr.u_opera_url)" href="#">Opera</a></td>
+					<td><a id="midLink" href="#" ng-click="midList(currSpr.sys_id)">Merchant IDs</a></td>
+					<td><a id="clientLineLink" ng-click="popUp('http://myclientline.net')" href="#">ClientLine</a></td>
+					<td><a id="catalogLink" ng-click="popUp('/catalog_home.do?sysparm_view=catalog_default')" href="#">Service Catalog</a></td>
+					<td><a id="catalogLink" ng-click="popUp('/report_home.do')" href="#">Reports</a></td>
+					<td><a id="showThird" ng-click="togThird()" href="#">Third Party Contacts</a></td>
+					<td><a id="showContact" ng-click="togInfo()" href="#">General Contact Information</a></td>
+					<td><a id="catalogLink" ng-click="popUp('https://teamsite.hyattoffice.com/sites/mooreacct/CS/Shared%20Documents/Hyatt%20Debit%20Hold%20Release%20Form/Debit%20Hold%20Release%20Form.pdf')" href="#">Debit Hold Release Form</a></td>
+				</tr>
+			</table>
+		</div>
+		<br /><br />
+ 		<div id="hotTable">
+		<table width="100%" style="background-color: transparent;">
+			<tbody>
+				<tr>
+					<td id="htlName" class="col1" width="20%">
+						{{ currSpr.u_name }} <br />
+						{{ currSpr.u_street }}<br />
+						{{ currSpr.u_city + ", " + currSpr.u_state + " (" + currSpr.u_country + ") " + currSpr.u_postal_code }}<br />
+						<span class="lblSpan">Check-in:</span>$[SP] {{ currSpr.u_check_in }}
+					</td>
+					<td>$[SP]$[SP]$[SP]$[SP]$[SP]</td>
+					<td id="htlPhone" class="col2" width="20%">
+						<span class="lblSpan">Phone:</span>$[SP] {{ currSpr.dv_u_phone }}<br />
+						<span class="lblSpan">HSSC Phone:</span>$[SP] {{ currSpr.u_hssc_phone_number }}<br />
+						<span class="lblSpan">HSSC Fax:</span>$[SP] {{ currSpr.u_hssc_fax_number }}<br />
+						<span class="lblSpan">Check-Out:</span>$[SP] {{ currSpr.u_check_out}}
+					</td>
+					<td>$[SP]$[SP]$[SP]$[SP]$[SP]</td>
+					<td id="htlRts" class="col3" width="20%">
+						<span class="lblSpan">Self-Parking:</span>$[SP] {{ currSpr.u_self_parking }}<br />
+						<span class="lblSpan">Valet-Parking:</span>$[SP] {{ currSpr.u_valet_parking }} <br />
+						<span class="lblSpan">Resort Fees:</span>$[SP] <a href="#" alt="Not Available" ng-attr-title="{{ currSpr.u_resort_fees_details }}">{{ currSpr.u_resort_fees }}</a><br />
+						<span class="lblSpan">Tax:</span>$[SP] {{ currSpr.u_tax }}
+					</td>
+					<td>$[SP]$[SP]$[SP]$[SP]$[SP]</td>
+					<td id="htlAgents" class="col4" width="25%">
+						<span class="lblSpan">HSSC AR Agent:</span>$[SP] <a href="#" ng-click="viewUser(currSpr.u_hssc_ar_agent, currSpr.dv_u_hssc_ar_agent)">{{ currSpr.dv_u_hssc_ar_agent }}</a><br />
+						<span class="lblSpan">HSSC Tax Agent:</span>$[SP] <a href="#" ng-click="viewUser(currSpr.u_hssc_tax_agent, currSpr.dv_u_hssc_tax_agent)">{{ currSpr.dv_u_hssc_tax_agent }}</a><br />
+						<span class="lblSpan">Threshold:</span>$[SP] <span id="threshText">{{ currSpr.u_threshold }}</span><br />
+					</td>
+					<td>$[SP]$[SP]$[SP]$[SP]$[SP]</td>
+					<td id="htlLink" class="imgCol">
+						<table id="hotImg">
+								<tr>
+									<td>
+										<div id ="hotLinks">
+											<a ng-click="popUp(currSpr.u_sharepoint_url)" href="#">SharePoint</a>$[SP]
+											<a href="{{ currSpr.u_base_site_url }}" target="_blank">hyatt.com</a>$[SP]
+											<a href="{{ currSpr.u_fact_sheet_url }}" target="_blank">Fact Sheet</a>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td><img ng-src="{{ currSpr.u_thumbnail_image_url }}" /></td>
+								</tr>
+						</table>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+		<div id="weatherWidget">
+			<table id="weatherTable">
+				<tr>
+					<td><img ng-src="{{ weatherData.image.url }}" height="15px" width="75px" /></td>
+					<td rowspan="3"><img ng-src="{{ weatherPic }}" height="auto" width="auto" /></td>
+					<td align="right">{{ weatherData.item.condition.text }}</td>
+				</tr>
+				<tr>
+					<td>{{ weatherDays[0].day }}, {{ weatherDays[0].date }}</td>
+					<td align="right">Current:$[SP]{{ weatherData.item.condition.temp }}°F</td>
+				</tr>
+				<tr>
+					<td>{{ weatherData.location.city }},$[SP]{{weatherData.location.region }}</td>
+					<td>High:$[SP]{{ weatherDays[0].high }}°F$[SP]$[SP]$[SP]$[SP]Low:$[SP]{{ weatherDays[0].low }}°F</td>
+				</tr>
+			</table>
+		</div>
+		<div id="caseList">
+			<span id="casesTitle">CS Cases:</span>
+			<span id="newCase"><a href="/u_cs_cases.do?sys_id=-1" target="_blank">New Case</a>$[SP]$[SP]<a href="#" ng-click="refreshCases()">Refresh Cases<img src="ui_refresh_icon.pngx" width="15px" height="15px" /></a></span>
+			<span id="caseGridSelect">Show Cases for Grid:$[SP]$[SP]
+				<select ng-model="caseGrid" ng-change="refreshCases()">
+					<option value="allGrids">All</option>
+					<option value="Grid 1">Grid 1</option>
+					<option value="Grid 2">Grid 2</option>
+					<option value="Grid 3">Grid 3</option>
+					<option value="Grid 4">Grid 4</option>
+					<option value="Grid 800">Grid 800</option>
+					<option value="Select">Select</option>
+				</select>
+			</span>
+			<div id="tabsDiv">
+				<table id="caseListTabs">
+					<tr>
+						<td><div id="myFollowUp" ng-click="selectTab('myFollowUp')" ng-class="{ true: 'selectedTab', false: 'notSelectedTab' } [activeTab == 'myFollowUp']">My Follow Up</div></td>
+						<td><div id="folioUnassigned" ng-click="selectTab('folioUnassigned')" ng-class="{ true: 'selectedTab', false: 'notSelectedTab' } [activeTab == 'folioUnassigned']">Folios Unassigned</div></td>
+						<td><div id="assignedToMe" ng-click="selectTab('assignedToMe')" ng-class="{ true: 'selectedTab', false: 'notSelectedTab' } [activeTab == 'assignedToMe']">Assigned To Me</div></td>
+						<td><div id="EmailVmail" ng-click="selectTab('EmailVmail')" ng-class="{ true: 'selectedTab', false: 'notSelectedTab' } [activeTab == 'EmailVmail']">Email/Voicemail Unassigned</div></td>
+						<td><div id="tabSpacer"></div></td>
+					</tr>
+				</table>
+			</div>
+			<div ng-class="{ true: 'selectedList', false: 'notSelectedList' } [activeTab == 'myFollowUp']">
+				<table id="followUpTable" width="100%">
+					<tr class="caseListHeader">
+						<th class="csNumCell"><a href="#" ng-click="fUpOrderByField='dv_u_parent_case'; reverseSort = !reverseSort">Number</a></th>
+						<th class="conNameCell"><a href="#" ng-click="fUpOrderByField='dv_u_parent_case_u_contact_name'; reverseSort = !reverseSort">Contact Name</a></th>
+						<th class="sDescCell"><a href="#" ng-click="fUpOrderByField='dv_u_parent_case_short_description'; reverseSort = !reverseSort">Short Description</a></th>
+						<th class="stateCell"><a href="#" ng-click="fUpOrderByField='dv_state'; reverseSort = !reverseSort">State</a></th>
+						<th class="assignGrpCell"><a href="#" ng-click="fUpOrderByField='u_parent_case_location_u_cs_grouping'; reverseSort = !reverseSort">CS Grouping</a></th>
+						<th class="assignToCell"><a href="#" ng-click="fUpOrderByField='dv_u_parent_case_location'; reverseSort = !reverseSort">Location</a></th>
+					</tr>
+					<tr ng-repeat="num in fUpCases|orderBy:fUpOrderByField:reverseSort" ng-class-odd="'csOdd'" ng-class-even="'csEven'">
+						<td class="csNumCell">
+							<div class="csNumDiv">
+								<a class="addMeImg" href="#" ng-click="assignToMe(num.u_parent_case)"><img src="ui_add_user.gifx" alt="Assign to Me" title="Assign to Me" width="15px" height="15px" /></a>$[SP]
+								<a class="csNumText"  target="_blank" ng-href="/u_cs_cases.do?sys_id={{ num.u_parent_case }}">{{ num.dv_u_parent_case }}</a>
+							</div>
+						</td>
+						<td class="conNameCell">
+							<a href="#" ng-click="openContact(num.u_parent_case_u_contact_name, num.dv_u_parent_case_u_contact_name)">{{ num.dv_u_parent_case_u_contact_name }}</a>
+						</td>
+						<td class="sDescCell">
+							{{ num.dv_u_parent_case_short_description }}
+						</td>
+						<td class="stateCell">
+							{{ num.dv_state }}
+						</td>
+						<td class="assignGrpCell">
+							{{ num.u_parent_case_location_u_cs_grouping }}
+						</td>
+						<td class="assignToCell">
+							<a href="#" ng-click="selectLocation(num.dv_u_parent_case_location)">{{ num.dv_u_parent_case_location }}</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div  ng-class="{ true: 'selectedList', false: 'notSelectedList' } [activeTab == 'folioUnassigned']">
+				<table id="folioTable" width="100%">
+					<tr class="caseListHeader">
+						<th class="csNumCell"><a href="#" ng-click="fOrderByField='number'; reverseSort = !reverseSort">Number</a></th>
+						<th class="conNameCell"><a href="#" ng-click="fOrderByField='dv_u_contact_name'; reverseSort = !reverseSort">Contact Name</a></th>
+						<th class="dateCell"><a href="#" ng-click="fOrderByField='dv_opened_at'; reverseSort = !reverseSort">Opened</a></th>
+						<th class="groupingCell"><a href="#" ng-click="fOrderByField='location_u_cs_grouping'; reverseSort = !reverseSort">CS Grouping</a></th>
+						<th class="locationCell"><a href="#" ng-click="fOrderByField='dv_location'; reverseSort = !reverseSort">Location</a></th>
+						<th class="stateCell"><a href="#" ng-click="fOrderByField='dv_state'; reverseSort = !reverseSort">State</a></th>
+						<th class="assignGrpCell"><a href="#" ng-click="fOrderByField='dv_assignment_group'; reverseSort = !reverseSort">Assignment Group</a></th>
+						<th class="assignToCell"><a href="#" ng-click="fOrderByField='dv_assigned_to'; reverseSort = !reverseSort">Assigned To</a></th>
+					</tr>
+					<tr ng-repeat="num in fCases|orderBy:fOrderByField:reverseSort" ng-class-odd="'csOdd'" ng-class-even="'csEven'">
+						<td class="csNumCell">
+							<div class="csNumDiv">
+								<a class="addMeImg" href="#" ng-click="assignToMe(num.sys_id)"><img src="ui_add_user.gifx" alt="Assign to Me" title="Assign to Me" width="15px" height="15px" /></a>$[SP]
+								<a class="csNumText" target="_blank" ng-href="/u_cs_cases.do?sys_id={{ num.sys_id }}">{{ num.number }}</a>
+							</div>
+						</td>
+						<td class="conNameCell">
+							<a href="#" ng-click="openContact(num.u_contact_name, num.dv_u_contact_name)">{{ num.dv_u_contact_name }}</a>
+						</td>
+						<td class="dateCell">
+							{{ num.dv_opened_at }}
+						</td>						
+						<td class="groupingCell">
+							{{ num.location_u_cs_grouping }}
+						</td>
+						<td class="locationCell">
+							<a href="#" ng-click="selectLocation(num.dv_location)">{{ num.dv_location }}</a>
+						</td>
+						<td class="stateCell">
+							{{ num.dv_state }}
+						</td>
+						<td class="assignGrpCell">
+							{{ num.dv_assignment_group }}
+						</td>
+						<td class="assignToCell">
+							<a href="#" ng-click="viewUser(num.assigned_to, num.dv_assigned_to)">{{num.dv_assigned_to }}</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div ng-class="{ true: 'selectedList', false: 'notSelectedList' } [activeTab == 'assignedToMe']">
+				<table id="assignedToMeTable" width="100%">
+					<tr class="caseListHeader">
+						<th class="csNumCell"><a href="#" ng-click="aOrderByField='number'; reverseSort = !reverseSort">Number</a></th>
+						<th class="conNameCell"><a href="#" ng-click="aOrderByField='dv_u_contact_name'; reverseSort = !reverseSort">Contact Name</a></th>
+						<th class="sDescCell"><a href="#" ng-click="aOrderByField='dv_short_description'; reverseSort = !reverseSort">Short Description</a></th>
+						<th class="groupingCell"><a href="#" ng-click="aOrderByField='location_u_cs_grouping'; reverseSort = !reverseSort">CS Grouping</a></th>
+						<th class="locationCell"><a href="#" ng-click="aOrderByField='dv_location'; reverseSort = !reverseSort">Location</a></th>
+						<th class="stateCell"><a href="#" ng-click="aOrderByField='dv_state'; reverseSort = !reverseSort">State</a></th>
+						<th class="assignGrpCell"><a href="#" ng-click="aOrderByField='dv_assignment_group'; reverseSort = !reverseSort">Assignment Group</a></th>
+						<th class="assignToCell"><a href="#" ng-click="aOrderByField='dv_assigned_to'; reverseSort = !reverseSort">Assigned To</a></th>
+					</tr>
+					<tr ng-repeat="num in atmCases|orderBy:aOrderByField:reverseSort" ng-class-odd="'csOdd'" ng-class-even="'csEven'">
+						<td class="csNumCell">
+							<div class="csNumDiv">
+								<a class="addMeImg" href="#" ng-click="assignToMe(num.sys_id)"><img src="ui_add_user.gifx" alt="Assign to Me" title="Assign to Me" width="15px" height="15px" /></a>$[SP]
+								<a class="csNumText" target="_blank" ng-href="/u_cs_cases.do?sys_id={{ num.sys_id }}">{{ num.number }}</a>
+							</div>
+						</td>
+						<td class="conNameCell">
+							<a href="#" ng-click="openContact(num.u_contact_name, num.dv_u_contact_name)">{{ num.dv_u_contact_name }}</a>
+						</td>
+						<td class="sDescCell">
+							{{ num.dv_short_description }}
+						</td>				
+						<td class="groupingCell">
+							{{ num.location_u_cs_grouping }}
+						</td>
+						<td class="locationCell">
+							<a href="#" ng-click="selectLocation(num.dv_location)">{{ num.dv_location }}</a>
+						</td>
+						<td class="stateCell">
+							{{ num.dv_state }}
+						</td>
+						<td class="assignGrpCell">
+							{{ num.dv_assignment_group }}
+						</td>
+						<td class="assignToCell">
+							<a href="#" ng-click="viewUser(num.assigned_to, num.dv_assigned_to)">{{num.dv_assigned_to }}</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div ng-class="{ true: 'selectedList', false: 'notSelectedList' } [activeTab == 'EmailVmail']">
+				<table id="eMvMTable" width="100%">
+					<tr class="caseListHeader">
+						<th class="csNumCell"><a href="#" ng-click="eMvMOrderByField='number'; reverseSort = !reverseSort">Number</a></th>
+						<th class="conNameCell"><a href="#" ng-click="eMvMOrderByField='dv_u_contact_name'; reverseSort = !reverseSort">Contact Name</a></th>
+						<th class="dateCell"><a href="#" ng-click="eMvMOrderByField='dv_opened_at'; reverseSort = !reverseSort">Opened</a></th>
+						<th class="groupingCell"><a href="#" ng-click="eMvMOrderByField='location_u_cs_grouping'; reverseSort = !reverseSort">CS Grouping</a></th>
+						<th class="locationCell"><a href="#" ng-click="eMvMOrderByField='dv_location'; reverseSort = !reverseSort">Location</a></th>
+						<th class="stateCell"><a href="#" ng-click="eMvMOrderByField='dv_state'; reverseSort = !reverseSort">State</a></th>
+						<th class="assignGrpCell"><a href="#" ng-click="eMvMOrderByField='dv_assignment_group'; reverseSort = !reverseSort">Assignment Group</a></th>
+						<th class="assignToCell"><a href="#" ng-click="eMvMOrderByField='dv_assigned_to'; reverseSort = !reverseSort">Assigned To</a></th>
+					</tr>
+					<tr ng-repeat="num in eMvMCases|orderBy:eMvMOrderByField:reverseSort" ng-class-odd="'csOdd'" ng-class-even="'csEven'">
+						<td class="csNumCell">
+							<div class="csNumDiv">
+								<a class="addMeImg" href="#" ng-click="assignToMe(num.sys_id)"><img src="ui_add_user.gifx" alt="Assign to Me" title="Assign to Me" width="15px" height="15px" /></a>$[SP]
+								<a class="csNumText" target="_blank" ng-href="/u_cs_cases.do?sys_id={{ num.sys_id }}">{{ num.number }}</a>
+							</div>
+						</td>
+						<td class="conNameCell">
+							<a href="#" ng-click="openContact(num.u_contact_name, num.dv_u_contact_name)">{{ num.dv_u_contact_name }}</a>
+						</td>
+						<td class="dateCell">
+							{{ num.dv_opened_at }}
+						</td>						
+						<td class="groupingCell">
+							{{ num.location_u_cs_grouping }}
+						</td>
+						<td class="locationCell">
+							<a href="#" ng-click="selectLocation(num.dv_location)">{{ num.dv_location }}</a>
+						</td>
+						<td class="stateCell">
+							{{ num.dv_state }}
+						</td>
+						<td class="assignGrpCell">
+							{{ num.dv_assignment_group }}
+						</td>
+						<td class="assignToCell">
+							<a href="#" ng-click="viewUser(num.assigned_to, num.dv_assigned_to)">{{num.dv_assigned_to }}</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+
+</body>
+</j:jelly>]]></html>
+        <name>Test</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-14 18:55:44</sys_created_on>
+        <sys_id>3093b3302f0ad0108f953996f699b6c3</sys_id>
+        <sys_mod_count>8</sys_mod_count>
+        <sys_name>Test</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_update_name>sys_ui_page_3093b3302f0ad0108f953996f699b6c3</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-15 05:05:55</sys_updated_on>
+    </sys_ui_page>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</application>
+        <file_path/>
+        <instance_id>4a2a4fc8dbf25b40cbf6d5b0cf96194b</instance_id>
+        <instance_name>dev61429</instance_name>
+        <name>sys_ui_page_3093b3302f0ad0108f953996f699b6c3</name>
+        <payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sys_ui_page"&gt;&lt;sys_ui_page action="INSERT_OR_UPDATE"&gt;&lt;category&gt;general&lt;/category&gt;&lt;client_script&gt;&lt;![CDATA[var app = angular.module('myHotels', []);
+
+app.factory('hotInfo', function($http, $q) { //Query Text Host Table for Hotel JSON Data
+    return {
+        getHotels: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_cs_locations.do?JSONv2&amp;displayvalue=all&amp;sysparm_query=ORDERBYu_spirit_code&amp;sysparm_view=default',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.factory('openweather', function($http, $q) {
+    return {
+        getWeather: function(zip) {
+            return $http({
+                method: 'GET',
+                url: 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22' + zip + '%22)&amp;format=json&amp;env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys',
+            }).then(
+                function(data) {
+                    return data;
+                },
+                function(error) {
+                    return error;
+                }
+            );
+        }
+    };
+});
+app.factory('sNowMyFollowUp', function($http, $q) { //Query CS Cases Table for Cases Assigned to User
+    return {
+        getCases: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_case_action_instance.do?JSONv2&amp;displayvalue=all&amp;sysparm_query=assigned_to%3Djavascript%3Ags.getUserID()%3B^active%3Dtrue^u_parent_caseSTARTSWITHCS^NQu_parent_case.active%3Dtrue^u_parent_case.assigned_to%3Djavascript%3Ags.getUserID()%3B^u_parent_caseSTARTSWITHCS&amp;sysparm_view=u_parent_cs_case_form_view',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.factory('sNowFolioUnassigned', function($http, $q) { //Query CS Cases Table for Cases Assigned to User
+    return {
+        getCases: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_cs_cases.do?JSONv2&amp;displayvalue=all&amp;sysparm_query=u_source%3Da58d4cfddd0019002c6911b513717b47^state%3D0^ORassigned_toISEMPTY^location.u_cs_groupingNOT LIKEunsupported^ORDERBYopened_at&amp;sysparm_view=u_query_view',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.factory('sNowAssignToMe', function($http, $q) { //Query CS Cases Table for Cases Assigned to User
+    return {
+        getCases: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_cs_cases.do?JSONv2&amp;displayvalue=all&amp;sysparm_query=active%3Dtrue^assigned_to%3Djavascript%3AgetMyAssignments()&amp;sysparm_view=u_query_view',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.factory('sNowEmailVmail', function($http, $q) { //Query CS Cases Table for Cases Assigned to User
+    return {
+        getCases: function() {
+            return $http({
+                method: 'GET',
+                url: '/u_cs_cases.do?JSONv2&amp;displayvalue=all&amp;sysparm_query=state%3D0^location.u_cs_groupingISNOTEMPTY^assigned_toISEMPTY^u_source%3Df79d4cfddd0019002c6911b513717b7a^ORu_source%3D6ead4cfddd0019002c6911b513717b7f^ORu_sourceISEMPTY^u_contact_name!%3Ded9e4fd82bd839c4d9062a2ef6da15b2^ORu_contact_nameISEMPTY^ORDERBYopened_at&amp;sysparm_view=u_query_view',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(
+                function(response) {
+                    return response.data;
+                },
+                function(response) {
+                    return $q.reject(response.data);
+                }
+            );
+        }
+    };
+});
+app.controller('propCtrl', ['$scope', 'hotInfo', 'openweather', 'sNowFolioUnassigned', 'sNowMyFollowUp', 'sNowAssignToMe', 'sNowEmailVmail', function($scope, hotInfo, openweather, sNowFolioUnassigned, sNowMyFollowUp, sNowAssignToMe, sNowEmailVmail, weatherService) {
+    function fetchWeather(zip) {
+        openweather.getWeather(zip).then(
+            function(data) {
+                $scope.weatherData = data.data.query.results.channel;
+                $scope.weatherDays = $scope.weatherData.item.forecast;
+                var desc = $scope.weatherData.item.description.split("\"/&gt;&lt;br", 2);
+                $scope.weatherPic = desc[0].replace("\n&lt;img src=\"", "");
+            },
+            function(data) {
+                return;
+            }
+        );
+    }
+
+    function compare(a, b) {
+        if (a.u_cs_grouping &lt; b.u_cs_grouping)
+            return -1;
+        if (a.u_cs_grouping &gt; b.u_cs_grouping)
+            return 1;
+        return 0;
+    }
+    hotInfo.getHotels().then(
+        function(data) {
+            //var recs = JSON.parse(data);
+            $scope.hotels = data.records.sort(compare);
+            $scope.currSpr = $scope.hotels[0];
+            fetchWeather($scope.currSpr.u_postal_code);
+        },
+        function(error) {
+            $scope.hotels[0] = error;
+        }
+    );
+    $scope.caseGrid = "allGrids";
+    $scope.fUpOrderByField = "dv_u_parent_case";
+    $scope.fOrderByField = "number";
+    $scope.aOrderByField = "number";
+    $scope.eMvMOrderByField = "number";
+    $scope.reversOrder = false;
+
+    $scope.sortCases = function(grid, arrCases) {
+        if ($scope.caseGrid == "allGrids") {
+            return arrCases;
+        } else {
+            var gCases = [];
+            angular.forEach(arrCases, function(value, key) {
+                if (angular.equals(value.location_u_cs_grouping, grid)) {
+                    gCases.push(value);
+                }
+            });
+            return gCases;
+        }
+    };
+    $scope.$watch('currSpr', function(newSpr) {
+        if (newSpr) {
+            fetchWeather($scope.currSpr.u_postal_code);
+        }
+    });
+    $scope.refreshCases = function() {
+        sNowMyFollowUp.getCases().then(
+            function(data) {
+                var cases = [];
+                angular.forEach(data.records, function(value, key) {
+                    var exists = false;
+                    angular.forEach(cases, function(val2, key) {
+                        if (angular.equals(value.u_parent_case, val2.u_parent_case)) {
+                            exists = true;
+                        }
+                    });
+                    if (exists == false &amp;&amp; value.dv_u_parent_case != "") {
+                        cases.push(value);
+                    }
+                });
+
+                var str = JSON.stringify(cases).split('.').join('_');
+                $scope.fUpCases = JSON.parse(str);
+            },
+            function(error) {
+                $scope.fUpCases[0] = error;
+            }
+        );
+        sNowFolioUnassigned.getCases().then(
+            function(data) {
+                var str = JSON.stringify(data.records).split('.').join('_');
+                $scope.fCases = $scope.sortCases($scope.caseGrid, JSON.parse(str));
+            },
+            function(error) {
+                $scope.fCases[0] = error;
+            }
+        );
+        sNowAssignToMe.getCases().then(
+            function(data) {
+                var str = JSON.stringify(data.records).split('.').join('_');
+                $scope.atmCases = $scope.sortCases($scope.caseGrid, JSON.parse(str));
+            },
+            function(error) {
+                $scope.atmCases[0] = error;
+            }
+        );
+        sNowEmailVmail.getCases().then(
+            function(data) {
+                var str = JSON.stringify(data.records).split('.').join('_');
+                $scope.eMvMCases = $scope.sortCases($scope.caseGrid, JSON.parse(str));
+            },
+            function(error) {
+                $scope.eMvMCases[0] = error;
+            }
+        );
+    };
+    $scope.refreshCases();
+    $scope.chgProp = function(i) {
+        $scope.currSpr = hotels[i];
+    }; //Poluate Main table when new property is selected
+    $scope.togInfo = function() { //Open dialog window for General Contact Information link
+        var contactDialog = new GlideDialogWindow("CS_Contact_Info_Table");
+        contactDialog.setTitle("General Contact Information");
+        contactDialog.render();
+    };
+    $scope.advSearchShow = false;
+    $scope.advButtonText = "Advanced Search";
+    $scope.searchCriteria = "Grid";
+    $scope.criteria = [{
+            "val": "Grid 1",
+            "displayVal": "Grid 1"
+        },
+        {
+            "val": "Grid 2",
+            "displayVal": "Grid 2"
+        },
+        {
+            "val": "Grid 3",
+            "displayVal": "Grid 3"
+        },
+        {
+            "val": "Grid 4",
+            "displayVal": "Grid 4"
+        },
+        {
+            "val": "Grid 5",
+            "displayVal": "Grid 5"
+        },
+        {
+            "val": "Grid 6",
+            "displayVal": "Grid 6"
+        },
+        {
+            "val": "Select",
+            "displayVal": "Select"
+        },
+        {
+            "val": "Stande Alone",
+            "displayVal": "Stand Alone"
+        }
+    ];
+
+    $scope.subSearchCriteria = $scope.criteria[0];
+    $scope.chgSubCritera = function() {
+        var prop;
+        if ($scope.searchCriteria == "Grid") {
+            prop = "u_cs_grouping";
+        } else if ($scope.searchCriteria == "City") {
+            prop = "u_city";
+        } else if ($scope.searchCriteria == "State") {
+            prop = "u_state";
+        }
+        $scope.advHotels = [];
+        angular.forEach($scope.hotels, function(value, key) {
+            if (angular.equals(value[prop], $scope.subSearchCriteria.val)) {
+                $scope.advHotels.push(value);
+            }
+        });
+        $scope.currSpr = $scope.advHotels[0];
+    };
+    $scope.chgCriteria = function() {
+        var prop;
+        if ($scope.searchCriteria == "Grid") {
+            prop = "u_cs_grouping";
+        } else if ($scope.searchCriteria == "City") {
+            prop = "u_city";
+        } else if ($scope.searchCriteria == "State") {
+            prop = "u_state";
+        }
+        $scope.criteria = [];
+        var exists;
+        angular.forEach($scope.hotels, function(value, key) {
+            exists = false;
+            angular.forEach($scope.criteria, function(val2, key2) {
+                if (angular.equals(val2.val, value[prop])) {
+                    exists = true;
+                }
+            });
+            if (exists == false &amp;&amp; value[prop] != "") {
+                if (prop == "u_city") {
+                    $scope.criteria.push({
+                        "val": value.u_city,
+                        "displayVal": value.u_city + ", " + value.u_state
+                    });
+                } else if (prop == "u_state") {
+                    $scope.criteria.push({
+                        "val": value.u_state,
+                        "displayVal": value.u_state + ", " + value.u_country
+                    });
+                } else {
+                    $scope.criteria.push({
+                        "val": value[prop],
+                        "displayVal": value[prop]
+                    });
+                }
+            }
+        });
+        $scope.criteria.sort();
+        $scope.subSearchCriteria = $scope.criteria[0];
+        $scope.chgSubCritera();
+    };
+    $scope.advSearchOptions = function() {
+        $scope.advSearchShow = !$scope.advSearchShow;
+        $scope.advButtonText = $scope.advSearchShow ? 'Show All Hotels' : 'Advanced Search';
+        if ($scope.advSearchShow == true) {
+            $scope.chgCriteria();
+            $scope.chgSubCritera();
+        }
+    };
+    $scope.togThird = function() { //Open dialog window for Third Party Contacts link
+        var thirdpDialog = new GlideDialogWindow("CS_Third_Party_Contacts");
+        thirdpDialog.setTitle("Third Party Contacts");
+        thirdpDialog.render();
+    };
+    $scope.openContact = function(sysID, disVal) { //Open dialog window when user clicks on a Contact Name in the CS Cases list
+        var dialog = new GlideDialogForm('View Contact', 'u_case_user');
+        dialog.setTitle(disVal);
+        dialog.setSysID(sysID);
+        dialog.addParm('sysparm_view', 'default');
+        dialog.addParm('sysparm_form_only', 'true');
+        dialog.render();
+
+    };
+
+    $scope.popUp = function(url) { //Open new browser window to navigate to Opera
+        var popUpObj = window.open(url, '_blank');
+        popUpObj.focus();
+    };
+    $scope.activeTab = 'myFollowUp';
+    $scope.selectTab = function(item) {
+        $scope.activeTab = item;
+    };
+    $scope.selectLocation = function(sCode) {
+        var supp = false;
+        var prop;
+        angular.forEach($scope.hotels, function(value, key) {
+            if (angular.equals(value.dv_u_spirit_code, sCode)) {
+                prop = value;
+                supp = true;
+                return;
+            }
+        });
+        if (supp == true) {
+            $scope.currSpr = prop;
+        } else {
+            alert('Property not found in supported list!');
+        }
+    };
+    $scope.assignToMe = function(sysID) {
+        gs.info(sysID);
+        var gr = new GlideRecord('u_cs_cases');
+        gr.get(sysID);
+        gr.assigned_to = "javascript:gs.getUserID()";
+        gr.update();
+        alert(gr.number + " assigned to you!");
+    };
+    $scope.viewUser = function(sysID, disVal) {
+        var dialog = new GlideDialogForm('View User', 'sys_user');
+        dialog.setTitle(disVal);
+        dialog.setSysID(sysID);
+        dialog.addParm('sysparm_view', 'sys_popup');
+        dialog.addParm('sysparm_form_only', 'true');
+        dialog.render();
+    };
+    $scope.midList = function(sCode) {
+        //Initialize the GlideDialogWindow
+        var gdw = new GlideDialogWindow('display_merchant_ids_list');
+        gdw.setTitle('Merchant IDs');
+        gdw.setPreference('table', 'u_merchant_ids_list');
+        gdw.setPreference('sysparm_view', 'default');
+
+        //Set the table to display
+        var query = 'u_spirit_code=' + sCode;
+        gdw.setPreference('sysparm_query', query);
+
+        //Open the dialog window
+        gdw.render();
+    };
+}]);]]&gt;&lt;/client_script&gt;&lt;description/&gt;&lt;direct&gt;false&lt;/direct&gt;&lt;endpoint&gt;x_77533_i_automate_Test.do&lt;/endpoint&gt;&lt;html&gt;&lt;![CDATA[&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null"&gt;
+&lt;g:requires name="angular-min.1.3.16.jsdbx" /&gt;
+&lt;link href="3ca86ab937380a006215d68543990ef6.cssdbx" rel="stylesheet" type="text/css"&gt;&lt;/link&gt;  
+&lt;g2:evaluate var="jvar_stamp"&gt; 
+    var gr = new GlideRecord('sys_ui_script');  
+    gr.get("13a5ea4d37300a006215d68543990e41");
+    gr.getValue('sys_updated_on');
+&lt;/g2:evaluate&gt;  
+&lt;g:requires name="cs-dashboard-script.jsdbx" params="cache=$[jvar_stamp]" /&gt;
+&lt;script&gt;
+	function searchCases(){ document.getElementById('sysparm_query').value = '123TEXTQUERY321=' + document.getElementById('123TEXTQUERY321').value; }
+&lt;/script&gt;
+	&lt;style&gt;
+		a{
+	text-decoration: underline;
+	color: #00FF00;
+}
+#weatherWidget{
+	position: absolute;
+	top: 10px;
+	left: calc(100% - 820px);
+}
+#weatherTable{
+	font-size: 10px;
+}
+#titleSpan{
+	font-size: 30px;
+	color: #007ACC;
+	float: right;
+	position: relative;
+	top: 10px;
+}
+#textSearch{
+	float: right;
+	position: relative;
+	top: -4px;
+}
+#headerStripe{
+	background: linear-gradient(#DDDEDE, #FFFFFF);     
+	width: 101%;
+	position: absolute;
+	left: -10px;
+	height: 30px;
+}
+#topTable, #advTopTable{
+	border-spacing: 10px;
+	background-color: transparent;
+}
+#advanceSelect{
+	float:right;
+	margin-right: 10px;
+}
+#staticLinks{
+	float: right;
+	border-spacing: 10px;
+	background-color: transparent;
+	position: relative;
+	top: 60px;
+}
+.lblSpan{
+	font-weight: 600;
+}
+#threshText{
+	font-style: italic;
+	font-weight: bold;
+	color: red;
+}
+#hotTable, #caseList{
+	border: 1px solid #DDDEDE;
+	border-radius: 10px;
+	box-shadow: 10px 10px 5px #888888;
+	width: 98%;
+	position: relative;
+	left: 10px;
+}
+#hotTable{
+	top: 30px;
+}
+#caseList{
+	top: 60px;
+}
+.selectedList{
+	top: 60px;
+	visibility: visible;
+	display: block;
+	width: 100%;
+	margin-bottom: 10px;
+}
+.notSelectedList{
+	visibility: hidden;
+	display: none;
+}
+.caseListHeader{
+	background-color: #A3C2C2;
+	text-align: center;
+ }
+ #tabsDiv{
+ 	border-bottom: 3px solid #A3C2C2;
+	width: 100%;
+}
+.caseTable:td{
+	border: 2px solid white;
+}
+.csNumCell, .stateCell{
+	width: 100px;
+	text-align: center;
+}
+.conNameCell, .assignGrpCell, .assignToCell, .sourceCell{
+	width: 250px;
+	text-align: center;
+}
+.dateCell, .groupingCell, .locationCell{
+	width: 100px;
+	text-align: center;
+}
+.sDescCell{
+	width: 300px;
+}
+.csOdd{
+	background-color: #F6F7F7;
+}
+.csEven{
+	background-color: #E1E3E3;
+}
+.csNumDiv{
+	position: relative;
+	left: -5px;
+}
+.addMeImg:active{
+	position: relative;
+	left: 2px;
+	top: 2px;
+}
+.csNumText{
+	position: relative;
+	left: -5px;
+}
+#casesTitle{
+	font-size: 15px;
+	font-weight: bold;
+}
+#caseGridSelect{
+	float:right;
+	margin-right: 10px;
+	position: relative;
+	top: 30px;
+	left: 175px;
+}
+#newCase{
+	float: right;
+	margin-right: 10px;
+}
+#refIcon{
+	float:right;
+	margin-right: 10px;
+	position: relative;
+	top: 40px;
+	left: 65px;
+}
+.selectedTab{
+	border: 1px solid #DDDEDE;
+	background-color: #FFFFFF;
+	border-top: 5px solid #007ACC;
+	border-radius: 5px 5px 0 0;
+	height: 35px;
+	min-width: 150px;
+	line-height: 35px;
+	text-align: center;
+	vertical-align: middle;
+	font-size: 13px;
+	font-weight: bold;
+	position: relative;
+	bottom: -3px;
+}
+.notSelectedTab{
+	border: 1px solid #DDDEDE;
+	background-color: #F6F7F7;
+	border-top: 5px solid #DDDEDE;
+	border-radius: 5px 5px 0 0;
+	height: 30px;
+	min-width: 150px;
+	line-height: 35px;
+	text-align: center;
+	vertical-align: middle;
+	font-size: 13px;
+	font-weight: bold;
+	position: relative;
+	bottom: -5px;
+}
+#EmailVmail{
+	width: 200px;
+}
+#caseListSpacer{
+	width: 100%;
+}
+#page_timing_div{
+	display: none;
+	position: absolute;
+	bottom: 0;
+	right: 0;
+}
+	&lt;/style&gt;
+&lt;body ng-app="myHotels"&gt;
+	&lt;a href="/" target="_blank"&gt;&lt;img src="038456b991810100ccb6b7b97ff51bdb.iix" /&gt;&lt;/a&gt;
+	&lt;span id="titleSpan"&gt;Customer Service Dashboard$[SP]$[SP]
+		&lt;span id="textSearch"&gt;
+			&lt;form id="searchForm" action="/u_cs_cases_list.do?" method="GET" target="_blank" onsubmit="searchCases()" &gt;
+				&lt;label for="123TEXTQUERY321" style="display:none;"&gt;Search&lt;/label&gt;
+				&lt;input type="text" id="123TEXTQUERY321" onfocus="if (this.value=='Search') this.value = ''; this.style='color:#000000';" onblur="this.style.color = '#999';" value="Search" style="color:#999" /&gt;
+				&lt;input type="hidden" name="sysparm_query" id="sysparm_query" value="" /&gt;
+				&lt;input type="image" class="searchGlass" src="images/search_glass.gifx" width="14" height="18" /&gt;
+			&lt;/form&gt;
+		&lt;/span&gt;
+	&lt;/span&gt;  
+	&lt;div ng-controller="propCtrl"&gt;
+		&lt;table id="headerStripe"&gt;
+			&lt;tr&gt;
+				&lt;td&gt;  
+					&lt;table id="topTable" ng-hide="advSearchShow"&gt;
+						&lt;tr&gt;
+							&lt;td&gt;Select a Spirit Code:&lt;/td&gt;
+							&lt;td&gt;&lt;select ng-options="x.dv_u_spirit_code + ' - ' + x.u_name for x in hotels" ng-model="currSpr" ng-change="chgProp(x.index)"&gt;&lt;/select&gt;&lt;/td&gt;
+							&lt;td&gt;{{ currSpr.dv_u_spirit_code + ": " + currSpr.u_hotel_type + " - " + currSpr.u_cs_grouping }}&lt;/td&gt;
+						&lt;/tr&gt;
+					&lt;/table&gt;
+					&lt;table id="advTopTable" ng-show="advSearchShow"&gt;
+						&lt;tr&gt;
+							&lt;td&gt;Select Search Criteria:&lt;/td&gt;
+							&lt;td&gt;
+								&lt;select ng-model="searchCriteria" ng-change="chgCriteria()"&gt;
+										&lt;option&gt;Grid&lt;/option&gt;
+										&lt;option&gt;City&lt;/option&gt;
+										&lt;option&gt;State&lt;/option&gt;
+								&lt;/select&gt;
+							&lt;/td&gt;
+							&lt;td&gt;Select a {{ searchCriteria }}:&lt;/td&gt;
+							&lt;td&gt;
+								&lt;select ng-model="subSearchCriteria" ng-options="c.displayVal for c in criteria | orderBy:'val'" ng-change="chgSubCritera()"&gt;&lt;/select&gt;
+							&lt;/td&gt;
+							&lt;td&gt;Select a Spirit Code:&lt;/td&gt;
+							&lt;td&gt;&lt;select ng-options="x.dv_u_spirit_code + ' - ' + x.u_name for x in advHotels" ng-model="currSpr" ng-change="chgProp(x.index)"&gt;&lt;/select&gt;&lt;/td&gt;
+							&lt;td&gt;{{ currSpr.u_hotel_type + " - " + currSpr.u_cs_grouping }}&lt;/td&gt;
+						&lt;/tr&gt;
+					&lt;/table&gt;
+				&lt;/td&gt;
+				&lt;td&gt;
+						&lt;input type="button" id="advanceSelect" value="{{ advButtonText }}" ng-click="advSearchOptions()" /&gt;
+				&lt;/td&gt;
+			&lt;/tr&gt;
+		&lt;/table&gt;
+		&lt;div id="staticDiv"&gt;
+			&lt;table id="staticLinks"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;&lt;a id="operaLink" ng-click="popUp(currSpr.u_opera_url)" href="#"&gt;Opera&lt;/a&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;a id="midLink" href="#" ng-click="midList(currSpr.sys_id)"&gt;Merchant IDs&lt;/a&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;a id="clientLineLink" ng-click="popUp('http://myclientline.net')" href="#"&gt;ClientLine&lt;/a&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;a id="catalogLink" ng-click="popUp('/catalog_home.do?sysparm_view=catalog_default')" href="#"&gt;Service Catalog&lt;/a&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;a id="catalogLink" ng-click="popUp('/report_home.do')" href="#"&gt;Reports&lt;/a&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;a id="showThird" ng-click="togThird()" href="#"&gt;Third Party Contacts&lt;/a&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;a id="showContact" ng-click="togInfo()" href="#"&gt;General Contact Information&lt;/a&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;a id="catalogLink" ng-click="popUp('https://teamsite.hyattoffice.com/sites/mooreacct/CS/Shared%20Documents/Hyatt%20Debit%20Hold%20Release%20Form/Debit%20Hold%20Release%20Form.pdf')" href="#"&gt;Debit Hold Release Form&lt;/a&gt;&lt;/td&gt;
+				&lt;/tr&gt;
+			&lt;/table&gt;
+		&lt;/div&gt;
+		&lt;br /&gt;&lt;br /&gt;
+ 		&lt;div id="hotTable"&gt;
+		&lt;table width="100%" style="background-color: transparent;"&gt;
+			&lt;tbody&gt;
+				&lt;tr&gt;
+					&lt;td id="htlName" class="col1" width="20%"&gt;
+						{{ currSpr.u_name }} &lt;br /&gt;
+						{{ currSpr.u_street }}&lt;br /&gt;
+						{{ currSpr.u_city + ", " + currSpr.u_state + " (" + currSpr.u_country + ") " + currSpr.u_postal_code }}&lt;br /&gt;
+						&lt;span class="lblSpan"&gt;Check-in:&lt;/span&gt;$[SP] {{ currSpr.u_check_in }}
+					&lt;/td&gt;
+					&lt;td&gt;$[SP]$[SP]$[SP]$[SP]$[SP]&lt;/td&gt;
+					&lt;td id="htlPhone" class="col2" width="20%"&gt;
+						&lt;span class="lblSpan"&gt;Phone:&lt;/span&gt;$[SP] {{ currSpr.dv_u_phone }}&lt;br /&gt;
+						&lt;span class="lblSpan"&gt;HSSC Phone:&lt;/span&gt;$[SP] {{ currSpr.u_hssc_phone_number }}&lt;br /&gt;
+						&lt;span class="lblSpan"&gt;HSSC Fax:&lt;/span&gt;$[SP] {{ currSpr.u_hssc_fax_number }}&lt;br /&gt;
+						&lt;span class="lblSpan"&gt;Check-Out:&lt;/span&gt;$[SP] {{ currSpr.u_check_out}}
+					&lt;/td&gt;
+					&lt;td&gt;$[SP]$[SP]$[SP]$[SP]$[SP]&lt;/td&gt;
+					&lt;td id="htlRts" class="col3" width="20%"&gt;
+						&lt;span class="lblSpan"&gt;Self-Parking:&lt;/span&gt;$[SP] {{ currSpr.u_self_parking }}&lt;br /&gt;
+						&lt;span class="lblSpan"&gt;Valet-Parking:&lt;/span&gt;$[SP] {{ currSpr.u_valet_parking }} &lt;br /&gt;
+						&lt;span class="lblSpan"&gt;Resort Fees:&lt;/span&gt;$[SP] &lt;a href="#" alt="Not Available" ng-attr-title="{{ currSpr.u_resort_fees_details }}"&gt;{{ currSpr.u_resort_fees }}&lt;/a&gt;&lt;br /&gt;
+						&lt;span class="lblSpan"&gt;Tax:&lt;/span&gt;$[SP] {{ currSpr.u_tax }}
+					&lt;/td&gt;
+					&lt;td&gt;$[SP]$[SP]$[SP]$[SP]$[SP]&lt;/td&gt;
+					&lt;td id="htlAgents" class="col4" width="25%"&gt;
+						&lt;span class="lblSpan"&gt;HSSC AR Agent:&lt;/span&gt;$[SP] &lt;a href="#" ng-click="viewUser(currSpr.u_hssc_ar_agent, currSpr.dv_u_hssc_ar_agent)"&gt;{{ currSpr.dv_u_hssc_ar_agent }}&lt;/a&gt;&lt;br /&gt;
+						&lt;span class="lblSpan"&gt;HSSC Tax Agent:&lt;/span&gt;$[SP] &lt;a href="#" ng-click="viewUser(currSpr.u_hssc_tax_agent, currSpr.dv_u_hssc_tax_agent)"&gt;{{ currSpr.dv_u_hssc_tax_agent }}&lt;/a&gt;&lt;br /&gt;
+						&lt;span class="lblSpan"&gt;Threshold:&lt;/span&gt;$[SP] &lt;span id="threshText"&gt;{{ currSpr.u_threshold }}&lt;/span&gt;&lt;br /&gt;
+					&lt;/td&gt;
+					&lt;td&gt;$[SP]$[SP]$[SP]$[SP]$[SP]&lt;/td&gt;
+					&lt;td id="htlLink" class="imgCol"&gt;
+						&lt;table id="hotImg"&gt;
+								&lt;tr&gt;
+									&lt;td&gt;
+										&lt;div id ="hotLinks"&gt;
+											&lt;a ng-click="popUp(currSpr.u_sharepoint_url)" href="#"&gt;SharePoint&lt;/a&gt;$[SP]
+											&lt;a href="{{ currSpr.u_base_site_url }}" target="_blank"&gt;hyatt.com&lt;/a&gt;$[SP]
+											&lt;a href="{{ currSpr.u_fact_sheet_url }}" target="_blank"&gt;Fact Sheet&lt;/a&gt;
+										&lt;/div&gt;
+									&lt;/td&gt;
+								&lt;/tr&gt;
+								&lt;tr&gt;
+									&lt;td&gt;&lt;img ng-src="{{ currSpr.u_thumbnail_image_url }}" /&gt;&lt;/td&gt;
+								&lt;/tr&gt;
+						&lt;/table&gt;
+					&lt;/td&gt;
+				&lt;/tr&gt;
+			&lt;/tbody&gt;
+		&lt;/table&gt;
+		&lt;/div&gt;
+		&lt;div id="weatherWidget"&gt;
+			&lt;table id="weatherTable"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;&lt;img ng-src="{{ weatherData.image.url }}" height="15px" width="75px" /&gt;&lt;/td&gt;
+					&lt;td rowspan="3"&gt;&lt;img ng-src="{{ weatherPic }}" height="auto" width="auto" /&gt;&lt;/td&gt;
+					&lt;td align="right"&gt;{{ weatherData.item.condition.text }}&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;{{ weatherDays[0].day }}, {{ weatherDays[0].date }}&lt;/td&gt;
+					&lt;td align="right"&gt;Current:$[SP]{{ weatherData.item.condition.temp }}°F&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;{{ weatherData.location.city }},$[SP]{{weatherData.location.region }}&lt;/td&gt;
+					&lt;td&gt;High:$[SP]{{ weatherDays[0].high }}°F$[SP]$[SP]$[SP]$[SP]Low:$[SP]{{ weatherDays[0].low }}°F&lt;/td&gt;
+				&lt;/tr&gt;
+			&lt;/table&gt;
+		&lt;/div&gt;
+		&lt;div id="caseList"&gt;
+			&lt;span id="casesTitle"&gt;CS Cases:&lt;/span&gt;
+			&lt;span id="newCase"&gt;&lt;a href="/u_cs_cases.do?sys_id=-1" target="_blank"&gt;New Case&lt;/a&gt;$[SP]$[SP]&lt;a href="#" ng-click="refreshCases()"&gt;Refresh Cases&lt;img src="ui_refresh_icon.pngx" width="15px" height="15px" /&gt;&lt;/a&gt;&lt;/span&gt;
+			&lt;span id="caseGridSelect"&gt;Show Cases for Grid:$[SP]$[SP]
+				&lt;select ng-model="caseGrid" ng-change="refreshCases()"&gt;
+					&lt;option value="allGrids"&gt;All&lt;/option&gt;
+					&lt;option value="Grid 1"&gt;Grid 1&lt;/option&gt;
+					&lt;option value="Grid 2"&gt;Grid 2&lt;/option&gt;
+					&lt;option value="Grid 3"&gt;Grid 3&lt;/option&gt;
+					&lt;option value="Grid 4"&gt;Grid 4&lt;/option&gt;
+					&lt;option value="Grid 800"&gt;Grid 800&lt;/option&gt;
+					&lt;option value="Select"&gt;Select&lt;/option&gt;
+				&lt;/select&gt;
+			&lt;/span&gt;
+			&lt;div id="tabsDiv"&gt;
+				&lt;table id="caseListTabs"&gt;
+					&lt;tr&gt;
+						&lt;td&gt;&lt;div id="myFollowUp" ng-click="selectTab('myFollowUp')" ng-class="{ true: 'selectedTab', false: 'notSelectedTab' } [activeTab == 'myFollowUp']"&gt;My Follow Up&lt;/div&gt;&lt;/td&gt;
+						&lt;td&gt;&lt;div id="folioUnassigned" ng-click="selectTab('folioUnassigned')" ng-class="{ true: 'selectedTab', false: 'notSelectedTab' } [activeTab == 'folioUnassigned']"&gt;Folios Unassigned&lt;/div&gt;&lt;/td&gt;
+						&lt;td&gt;&lt;div id="assignedToMe" ng-click="selectTab('assignedToMe')" ng-class="{ true: 'selectedTab', false: 'notSelectedTab' } [activeTab == 'assignedToMe']"&gt;Assigned To Me&lt;/div&gt;&lt;/td&gt;
+						&lt;td&gt;&lt;div id="EmailVmail" ng-click="selectTab('EmailVmail')" ng-class="{ true: 'selectedTab', false: 'notSelectedTab' } [activeTab == 'EmailVmail']"&gt;Email/Voicemail Unassigned&lt;/div&gt;&lt;/td&gt;
+						&lt;td&gt;&lt;div id="tabSpacer"&gt;&lt;/div&gt;&lt;/td&gt;
+					&lt;/tr&gt;
+				&lt;/table&gt;
+			&lt;/div&gt;
+			&lt;div ng-class="{ true: 'selectedList', false: 'notSelectedList' } [activeTab == 'myFollowUp']"&gt;
+				&lt;table id="followUpTable" width="100%"&gt;
+					&lt;tr class="caseListHeader"&gt;
+						&lt;th class="csNumCell"&gt;&lt;a href="#" ng-click="fUpOrderByField='dv_u_parent_case'; reverseSort = !reverseSort"&gt;Number&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="conNameCell"&gt;&lt;a href="#" ng-click="fUpOrderByField='dv_u_parent_case_u_contact_name'; reverseSort = !reverseSort"&gt;Contact Name&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="sDescCell"&gt;&lt;a href="#" ng-click="fUpOrderByField='dv_u_parent_case_short_description'; reverseSort = !reverseSort"&gt;Short Description&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="stateCell"&gt;&lt;a href="#" ng-click="fUpOrderByField='dv_state'; reverseSort = !reverseSort"&gt;State&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="assignGrpCell"&gt;&lt;a href="#" ng-click="fUpOrderByField='u_parent_case_location_u_cs_grouping'; reverseSort = !reverseSort"&gt;CS Grouping&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="assignToCell"&gt;&lt;a href="#" ng-click="fUpOrderByField='dv_u_parent_case_location'; reverseSort = !reverseSort"&gt;Location&lt;/a&gt;&lt;/th&gt;
+					&lt;/tr&gt;
+					&lt;tr ng-repeat="num in fUpCases|orderBy:fUpOrderByField:reverseSort" ng-class-odd="'csOdd'" ng-class-even="'csEven'"&gt;
+						&lt;td class="csNumCell"&gt;
+							&lt;div class="csNumDiv"&gt;
+								&lt;a class="addMeImg" href="#" ng-click="assignToMe(num.u_parent_case)"&gt;&lt;img src="ui_add_user.gifx" alt="Assign to Me" title="Assign to Me" width="15px" height="15px" /&gt;&lt;/a&gt;$[SP]
+								&lt;a class="csNumText"  target="_blank" ng-href="/u_cs_cases.do?sys_id={{ num.u_parent_case }}"&gt;{{ num.dv_u_parent_case }}&lt;/a&gt;
+							&lt;/div&gt;
+						&lt;/td&gt;
+						&lt;td class="conNameCell"&gt;
+							&lt;a href="#" ng-click="openContact(num.u_parent_case_u_contact_name, num.dv_u_parent_case_u_contact_name)"&gt;{{ num.dv_u_parent_case_u_contact_name }}&lt;/a&gt;
+						&lt;/td&gt;
+						&lt;td class="sDescCell"&gt;
+							{{ num.dv_u_parent_case_short_description }}
+						&lt;/td&gt;
+						&lt;td class="stateCell"&gt;
+							{{ num.dv_state }}
+						&lt;/td&gt;
+						&lt;td class="assignGrpCell"&gt;
+							{{ num.u_parent_case_location_u_cs_grouping }}
+						&lt;/td&gt;
+						&lt;td class="assignToCell"&gt;
+							&lt;a href="#" ng-click="selectLocation(num.dv_u_parent_case_location)"&gt;{{ num.dv_u_parent_case_location }}&lt;/a&gt;
+						&lt;/td&gt;
+					&lt;/tr&gt;
+				&lt;/table&gt;
+			&lt;/div&gt;
+			&lt;div  ng-class="{ true: 'selectedList', false: 'notSelectedList' } [activeTab == 'folioUnassigned']"&gt;
+				&lt;table id="folioTable" width="100%"&gt;
+					&lt;tr class="caseListHeader"&gt;
+						&lt;th class="csNumCell"&gt;&lt;a href="#" ng-click="fOrderByField='number'; reverseSort = !reverseSort"&gt;Number&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="conNameCell"&gt;&lt;a href="#" ng-click="fOrderByField='dv_u_contact_name'; reverseSort = !reverseSort"&gt;Contact Name&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="dateCell"&gt;&lt;a href="#" ng-click="fOrderByField='dv_opened_at'; reverseSort = !reverseSort"&gt;Opened&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="groupingCell"&gt;&lt;a href="#" ng-click="fOrderByField='location_u_cs_grouping'; reverseSort = !reverseSort"&gt;CS Grouping&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="locationCell"&gt;&lt;a href="#" ng-click="fOrderByField='dv_location'; reverseSort = !reverseSort"&gt;Location&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="stateCell"&gt;&lt;a href="#" ng-click="fOrderByField='dv_state'; reverseSort = !reverseSort"&gt;State&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="assignGrpCell"&gt;&lt;a href="#" ng-click="fOrderByField='dv_assignment_group'; reverseSort = !reverseSort"&gt;Assignment Group&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="assignToCell"&gt;&lt;a href="#" ng-click="fOrderByField='dv_assigned_to'; reverseSort = !reverseSort"&gt;Assigned To&lt;/a&gt;&lt;/th&gt;
+					&lt;/tr&gt;
+					&lt;tr ng-repeat="num in fCases|orderBy:fOrderByField:reverseSort" ng-class-odd="'csOdd'" ng-class-even="'csEven'"&gt;
+						&lt;td class="csNumCell"&gt;
+							&lt;div class="csNumDiv"&gt;
+								&lt;a class="addMeImg" href="#" ng-click="assignToMe(num.sys_id)"&gt;&lt;img src="ui_add_user.gifx" alt="Assign to Me" title="Assign to Me" width="15px" height="15px" /&gt;&lt;/a&gt;$[SP]
+								&lt;a class="csNumText" target="_blank" ng-href="/u_cs_cases.do?sys_id={{ num.sys_id }}"&gt;{{ num.number }}&lt;/a&gt;
+							&lt;/div&gt;
+						&lt;/td&gt;
+						&lt;td class="conNameCell"&gt;
+							&lt;a href="#" ng-click="openContact(num.u_contact_name, num.dv_u_contact_name)"&gt;{{ num.dv_u_contact_name }}&lt;/a&gt;
+						&lt;/td&gt;
+						&lt;td class="dateCell"&gt;
+							{{ num.dv_opened_at }}
+						&lt;/td&gt;						
+						&lt;td class="groupingCell"&gt;
+							{{ num.location_u_cs_grouping }}
+						&lt;/td&gt;
+						&lt;td class="locationCell"&gt;
+							&lt;a href="#" ng-click="selectLocation(num.dv_location)"&gt;{{ num.dv_location }}&lt;/a&gt;
+						&lt;/td&gt;
+						&lt;td class="stateCell"&gt;
+							{{ num.dv_state }}
+						&lt;/td&gt;
+						&lt;td class="assignGrpCell"&gt;
+							{{ num.dv_assignment_group }}
+						&lt;/td&gt;
+						&lt;td class="assignToCell"&gt;
+							&lt;a href="#" ng-click="viewUser(num.assigned_to, num.dv_assigned_to)"&gt;{{num.dv_assigned_to }}&lt;/a&gt;
+						&lt;/td&gt;
+					&lt;/tr&gt;
+				&lt;/table&gt;
+			&lt;/div&gt;
+			&lt;div ng-class="{ true: 'selectedList', false: 'notSelectedList' } [activeTab == 'assignedToMe']"&gt;
+				&lt;table id="assignedToMeTable" width="100%"&gt;
+					&lt;tr class="caseListHeader"&gt;
+						&lt;th class="csNumCell"&gt;&lt;a href="#" ng-click="aOrderByField='number'; reverseSort = !reverseSort"&gt;Number&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="conNameCell"&gt;&lt;a href="#" ng-click="aOrderByField='dv_u_contact_name'; reverseSort = !reverseSort"&gt;Contact Name&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="sDescCell"&gt;&lt;a href="#" ng-click="aOrderByField='dv_short_description'; reverseSort = !reverseSort"&gt;Short Description&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="groupingCell"&gt;&lt;a href="#" ng-click="aOrderByField='location_u_cs_grouping'; reverseSort = !reverseSort"&gt;CS Grouping&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="locationCell"&gt;&lt;a href="#" ng-click="aOrderByField='dv_location'; reverseSort = !reverseSort"&gt;Location&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="stateCell"&gt;&lt;a href="#" ng-click="aOrderByField='dv_state'; reverseSort = !reverseSort"&gt;State&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="assignGrpCell"&gt;&lt;a href="#" ng-click="aOrderByField='dv_assignment_group'; reverseSort = !reverseSort"&gt;Assignment Group&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="assignToCell"&gt;&lt;a href="#" ng-click="aOrderByField='dv_assigned_to'; reverseSort = !reverseSort"&gt;Assigned To&lt;/a&gt;&lt;/th&gt;
+					&lt;/tr&gt;
+					&lt;tr ng-repeat="num in atmCases|orderBy:aOrderByField:reverseSort" ng-class-odd="'csOdd'" ng-class-even="'csEven'"&gt;
+						&lt;td class="csNumCell"&gt;
+							&lt;div class="csNumDiv"&gt;
+								&lt;a class="addMeImg" href="#" ng-click="assignToMe(num.sys_id)"&gt;&lt;img src="ui_add_user.gifx" alt="Assign to Me" title="Assign to Me" width="15px" height="15px" /&gt;&lt;/a&gt;$[SP]
+								&lt;a class="csNumText" target="_blank" ng-href="/u_cs_cases.do?sys_id={{ num.sys_id }}"&gt;{{ num.number }}&lt;/a&gt;
+							&lt;/div&gt;
+						&lt;/td&gt;
+						&lt;td class="conNameCell"&gt;
+							&lt;a href="#" ng-click="openContact(num.u_contact_name, num.dv_u_contact_name)"&gt;{{ num.dv_u_contact_name }}&lt;/a&gt;
+						&lt;/td&gt;
+						&lt;td class="sDescCell"&gt;
+							{{ num.dv_short_description }}
+						&lt;/td&gt;				
+						&lt;td class="groupingCell"&gt;
+							{{ num.location_u_cs_grouping }}
+						&lt;/td&gt;
+						&lt;td class="locationCell"&gt;
+							&lt;a href="#" ng-click="selectLocation(num.dv_location)"&gt;{{ num.dv_location }}&lt;/a&gt;
+						&lt;/td&gt;
+						&lt;td class="stateCell"&gt;
+							{{ num.dv_state }}
+						&lt;/td&gt;
+						&lt;td class="assignGrpCell"&gt;
+							{{ num.dv_assignment_group }}
+						&lt;/td&gt;
+						&lt;td class="assignToCell"&gt;
+							&lt;a href="#" ng-click="viewUser(num.assigned_to, num.dv_assigned_to)"&gt;{{num.dv_assigned_to }}&lt;/a&gt;
+						&lt;/td&gt;
+					&lt;/tr&gt;
+				&lt;/table&gt;
+			&lt;/div&gt;
+			&lt;div ng-class="{ true: 'selectedList', false: 'notSelectedList' } [activeTab == 'EmailVmail']"&gt;
+				&lt;table id="eMvMTable" width="100%"&gt;
+					&lt;tr class="caseListHeader"&gt;
+						&lt;th class="csNumCell"&gt;&lt;a href="#" ng-click="eMvMOrderByField='number'; reverseSort = !reverseSort"&gt;Number&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="conNameCell"&gt;&lt;a href="#" ng-click="eMvMOrderByField='dv_u_contact_name'; reverseSort = !reverseSort"&gt;Contact Name&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="dateCell"&gt;&lt;a href="#" ng-click="eMvMOrderByField='dv_opened_at'; reverseSort = !reverseSort"&gt;Opened&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="groupingCell"&gt;&lt;a href="#" ng-click="eMvMOrderByField='location_u_cs_grouping'; reverseSort = !reverseSort"&gt;CS Grouping&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="locationCell"&gt;&lt;a href="#" ng-click="eMvMOrderByField='dv_location'; reverseSort = !reverseSort"&gt;Location&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="stateCell"&gt;&lt;a href="#" ng-click="eMvMOrderByField='dv_state'; reverseSort = !reverseSort"&gt;State&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="assignGrpCell"&gt;&lt;a href="#" ng-click="eMvMOrderByField='dv_assignment_group'; reverseSort = !reverseSort"&gt;Assignment Group&lt;/a&gt;&lt;/th&gt;
+						&lt;th class="assignToCell"&gt;&lt;a href="#" ng-click="eMvMOrderByField='dv_assigned_to'; reverseSort = !reverseSort"&gt;Assigned To&lt;/a&gt;&lt;/th&gt;
+					&lt;/tr&gt;
+					&lt;tr ng-repeat="num in eMvMCases|orderBy:eMvMOrderByField:reverseSort" ng-class-odd="'csOdd'" ng-class-even="'csEven'"&gt;
+						&lt;td class="csNumCell"&gt;
+							&lt;div class="csNumDiv"&gt;
+								&lt;a class="addMeImg" href="#" ng-click="assignToMe(num.sys_id)"&gt;&lt;img src="ui_add_user.gifx" alt="Assign to Me" title="Assign to Me" width="15px" height="15px" /&gt;&lt;/a&gt;$[SP]
+								&lt;a class="csNumText" target="_blank" ng-href="/u_cs_cases.do?sys_id={{ num.sys_id }}"&gt;{{ num.number }}&lt;/a&gt;
+							&lt;/div&gt;
+						&lt;/td&gt;
+						&lt;td class="conNameCell"&gt;
+							&lt;a href="#" ng-click="openContact(num.u_contact_name, num.dv_u_contact_name)"&gt;{{ num.dv_u_contact_name }}&lt;/a&gt;
+						&lt;/td&gt;
+						&lt;td class="dateCell"&gt;
+							{{ num.dv_opened_at }}
+						&lt;/td&gt;						
+						&lt;td class="groupingCell"&gt;
+							{{ num.location_u_cs_grouping }}
+						&lt;/td&gt;
+						&lt;td class="locationCell"&gt;
+							&lt;a href="#" ng-click="selectLocation(num.dv_location)"&gt;{{ num.dv_location }}&lt;/a&gt;
+						&lt;/td&gt;
+						&lt;td class="stateCell"&gt;
+							{{ num.dv_state }}
+						&lt;/td&gt;
+						&lt;td class="assignGrpCell"&gt;
+							{{ num.dv_assignment_group }}
+						&lt;/td&gt;
+						&lt;td class="assignToCell"&gt;
+							&lt;a href="#" ng-click="viewUser(num.assigned_to, num.dv_assigned_to)"&gt;{{num.dv_assigned_to }}&lt;/a&gt;
+						&lt;/td&gt;
+					&lt;/tr&gt;
+				&lt;/table&gt;
+			&lt;/div&gt;
+		&lt;/div&gt;
+	&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/j:jelly&gt;]]&gt;&lt;/html&gt;&lt;name&gt;Test&lt;/name&gt;&lt;processing_script/&gt;&lt;sys_class_name&gt;sys_ui_page&lt;/sys_class_name&gt;&lt;sys_created_by&gt;admin&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2020-07-14 18:55:44&lt;/sys_created_on&gt;&lt;sys_id&gt;3093b3302f0ad0108f953996f699b6c3&lt;/sys_id&gt;&lt;sys_mod_count&gt;8&lt;/sys_mod_count&gt;&lt;sys_name&gt;Test&lt;/sys_name&gt;&lt;sys_package display_value="i-Automate" source="x_77533_i_automate"&gt;a3a159fc2f42d0108f953996f699b6c0&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="i-Automate"&gt;a3a159fc2f42d0108f953996f699b6c0&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_ui_page_3093b3302f0ad0108f953996f699b6c3&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;admin&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2020-07-15 05:05:55&lt;/sys_updated_on&gt;&lt;/sys_ui_page&gt;&lt;/record_update&gt;</payload>
+        <payload_hash>-445331149</payload_hash>
+        <record_name>Test</record_name>
+        <reverted_from/>
+        <source>b7a159fc2f42d0108f953996f699b6c2</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-15 05:05:55</sys_created_on>
+        <sys_id>107fb5012f4ed0108f953996f699b6fa</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>17350dd6ec00000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-15 05:05:55</sys_updated_on>
+        <type>UI Page</type>
+        <update_guid>987fb5010b4ed0109b7b39c4cfd735f9</update_guid>
+        <update_guid_history>987fb5010b4ed0109b7b39c4cfd735f9:-445331149,d4800009490ad0107b3c1820c40be134:1855179444,ae500009690ad0109755e9e82da0b730:-707483243,f33f77b4770ad010d7ddd3d31443b672:1066582490,330ffb74a50ad010e2de813837d1b061:-614388756,867e77b4100ad010c0fb4e6c889e1b97:884955961,67bc3f34010ad01030706aca9988943d:1376028652,49243ff48ac6d010ea9e21fb2fb06e27:1426604253,46c3fffca1c6d01019223f91386d15f4:-1039563559</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete/>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-15 08:11:43</sys_created_on>
+        <sys_db_object display_value="" name="sys_ui_page">sys_ui_page</sys_db_object>
+        <sys_id>836293de02974e35b7ac8d59bbbef549</sys_id>
+        <sys_metadata>3093b3302f0ad0108f953996f699b6c3</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Test</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_scope_delete display_value="">02c75c68ce1a4ac28cb21eb80f1479c4</sys_scope_delete>
+        <sys_update_name>sys_ui_page_3093b3302f0ad0108f953996f699b6c3</sys_update_name>
+        <sys_update_version display_value="sys_ui_page_3093b3302f0ad0108f953996f699b6c3">107fb5012f4ed0108f953996f699b6fa</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-15 08:11:43</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

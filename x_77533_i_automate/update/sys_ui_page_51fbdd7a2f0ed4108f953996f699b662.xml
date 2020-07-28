@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script/>
+        <description>&lt;html&gt;&#13;
+  &lt;head&gt;&#13;
+    &lt;script src="https://aframe.io/releases/0.8.2/aframe.min.js"&gt;&lt;/script&gt;&#13;
+  &lt;/head&gt;&#13;
+  &lt;body&gt;&#13;
+    &lt;a-scene environment=""&gt;&#13;
+      &lt;a-assets&gt;&#13;
+        &lt;a-asset-item id="gltf" src="" &gt;&lt;/a-asset-item&gt;&#13;
+      &lt;/a-assets&gt;&#13;
+     &lt;a-entity gltf-model="#gltf"&gt;&lt;/a-entity&gt;&#13;
+    &lt;/a-scene&gt;&#13;
+  &lt;/body&gt;&#13;
+&lt;/html&gt;</description>
+        <direct>false</direct>
+        <endpoint>x_77533_i_automate_twat.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+<script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+
+<!-- Model by LeoPoly: https://clara.io/view/7396753f-e196-4706-9507-13919f31be6c# (OBJ format) -->
+<!-- Model converted using: https://cesiumjs.org/convertmodel.html (all options unchecked) -->
+<a-scene>
+  <a-camera rotation="0 0 0" wsad-controls="" look-controls="">
+  </a-camera>
+  <a-assets>
+    <a-asset-item id="skull-model" src="https://cdn.glitch.com/547ae858-8aad-4557-9a2c-4b1b76c55cb1%2Fcouch.glb"></a-asset-item> 
+  </a-assets>
+	 <a-entity gltf-model="#skull-model"  position="0 0 -3" rotation ="0 180 0"></a-entity>
+ 
+</a-scene>
+</j:jelly>]]></html>
+        <name>twat</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-20 13:01:03</sys_created_on>
+        <sys_id>51fbdd7a2f0ed4108f953996f699b662</sys_id>
+        <sys_mod_count>67</sys_mod_count>
+        <sys_name>twat</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_update_name>sys_ui_page_51fbdd7a2f0ed4108f953996f699b662</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-22 16:40:57</sys_updated_on>
+    </sys_ui_page>
+</record_update>

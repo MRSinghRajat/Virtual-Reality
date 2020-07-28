@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_77533_i_automate.getData</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>getData</name>
+        <script><![CDATA[var getData = Class.create();
+getData.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+    getUserData: function() {
+
+        var a = new GlideRecord('x_77533_i_automate_topics');
+        a.addQuery('sys_id', 'f1df33522f02d4108f953996f699b61b');
+        a.query();
+        if (a.next()) {
+            var objD = {};
+            objD.script = a.frame_script.toString();
+            objD.ojbsc = a.obj_string.toString();
+            // gs.info(JSON.stringify(objD));
+            return JSON.stringify(objD);
+        }
+    },
+    getUserScript: function() {
+
+        var a = new GlideRecord('x_77533_i_automate_topics');
+        a.addQuery('sys_id', 'f1df33522f02d4108f953996f699b61b');
+        a.query();
+        if (a.next()) {
+            return a.frame_script.toString();
+        }
+    },
+    type: 'getData'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-15 07:06:27</sys_created_on>
+        <sys_id>78fa92412f8ed0108f953996f699b619</sys_id>
+        <sys_mod_count>27</sys_mod_count>
+        <sys_name>getData</sys_name>
+        <sys_package display_value="i-Automate" source="x_77533_i_automate">a3a159fc2f42d0108f953996f699b6c0</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="i-Automate">a3a159fc2f42d0108f953996f699b6c0</sys_scope>
+        <sys_update_name>sys_script_include_78fa92412f8ed0108f953996f699b619</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-20 12:03:40</sys_updated_on>
+    </sys_script_include>
+</record_update>

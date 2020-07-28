@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Topics" max_length="40" name="x_77533_i_automate_topics" sizeclass="2" type="collection">
+        <element label="Frame Script" max_length="8000" name="frame_script" type="string_full_utf8"/>
+        <element label="Name" max_length="500" name="name" type="string"/>
+        <element label="Obj String" max_length="8000" name="obj_string" type="string_full_utf8"/>
+    </element>
+</database>
